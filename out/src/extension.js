@@ -2,13 +2,6 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const vscode = require("vscode");
 const vscode_1 = require("vscode");
-// var i:number = 0;
-// for (1;i<editor.document.lineCount;1){
-//     let range = new Range(i, 0, i, 1000);
-//     let testText = editor.document.getText(range);
-//     console.log('Line ' + i+1 + ' - ' + testText);
-//     i+=1;
-// }
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 function activate(context) {
@@ -17,20 +10,20 @@ function activate(context) {
     // This line of code will only be executed once when your extension is activated.
     //console.log('Congratulations, your extension "WordCount" is now active!');
     // create a new word counter
-    let wordCounter = new WordCounter();
-    let controller = new WordCounterController(wordCounter);
+    let maintainabilityIndex = new MaintainabilityIndex();
+    let controller = new MaintainabilityIndexController(maintainabilityIndex);
     // Add to a list of disposables which are disposed when this extension is deactivated.
     context.subscriptions.push(controller);
-    context.subscriptions.push(wordCounter);
+    context.subscriptions.push(maintainabilityIndex);
     let ccode = new CleanCode();
     let refactordisp = vscode_1.commands.registerCommand('Refactor', () => {
         ccode.Refactor(vscode_1.window.activeTextEditor);
     });
     let ccodedisp = vscode_1.commands.registerCommand('CleanCode', () => {
         ccode.CleanCode(vscode_1.window.activeTextEditor);
-        wordCounter.updateWordCount();
+        maintainabilityIndex.updateMaintainabilityIndex();
     });
-    context.subscriptions.push(wordCounter);
+    context.subscriptions.push(maintainabilityIndex);
     context.subscriptions.push(refactordisp);
     context.subscriptions.push(ccodedisp);
 }
@@ -39,8 +32,8 @@ exports.activate = activate;
 function deactivate() {
 }
 exports.deactivate = deactivate;
-class WordCounter {
-    updateWordCount() {
+class MaintainabilityIndex {
+    updateMaintainabilityIndex() {
         // Create as needed
         if (!this._statusBarItem) {
             this._statusBarItem = vscode_1.window.createStatusBarItem(vscode_1.StatusBarAlignment.Left);
@@ -54,16 +47,16 @@ class WordCounter {
         let doc = editor.document;
         // Only update status if an Markdown file
         if (doc.languageId === "al") {
-            let wordCount = this._getWordCount(doc);
+            let maintainabilityIndex = this._getMaintainabilityIndex(doc);
             // Update the status bar
-            this._statusBarItem.text = wordCount !== 1 ? `${wordCount} Words` : '1 Word';
+            this._statusBarItem.text = maintainabilityIndex !== 1 ? `Maintainability Index ${maintainabilityIndex}` : 'Maintainability Index Undefined';
             this._statusBarItem.show();
         }
         else {
             this._statusBarItem.hide();
         }
     }
-    _getWordCount(doc) {
+    _getMaintainabilityIndex(doc) {
         let docContent = doc.getText();
         // Parse out unwanted whitespace so the split is accurate
         docContent = docContent.replace(/(< ([^>]+)<)/g, '').replace(/\s+/g, ' ');
@@ -78,15 +71,15 @@ class WordCounter {
         this._statusBarItem.dispose();
     }
 }
-class WordCounterController {
+class MaintainabilityIndexController {
     constructor(wordCounter) {
-        this._wordCounter = wordCounter;
+        this._maintainabilityIndex = wordCounter;
         // subscribe to selection change and editor activation events
         let subscriptions = [];
         vscode_1.window.onDidChangeTextEditorSelection(this._onEvent, this, subscriptions);
         vscode_1.window.onDidChangeActiveTextEditor(this._onEvent, this, subscriptions);
         // update the counter for the current file
-        this._wordCounter.updateWordCount();
+        this._maintainabilityIndex.updateMaintainabilityIndex();
         // create a combined disposable from both event subscriptions
         this._disposable = vscode_1.Disposable.from(...subscriptions);
     }
@@ -94,7 +87,7 @@ class WordCounterController {
         this._disposable.dispose();
     }
     _onEvent() {
-        this._wordCounter.updateWordCount();
+        this._maintainabilityIndex.updateMaintainabilityIndex();
     }
 }
 class CleanCode {
@@ -111,17 +104,15 @@ class CleanCode {
     CleanCodeCheck(editor) {
         console.log('CleanCode' + editor.document.lineCount);
         let myObject = new alObject(editor.document.getText(new vscode_1.Range(0, 0, 1000, 1000)));
-        //console.log(alObject.getContent());
         console.log("Object Type :" + myObject.objectType);
         console.log("Number of Functions :" + myObject.numberOfFunctions);
         myObject.alFunction.forEach(element => {
-            //console.log(element.content);
             console.log("Function Name : " + element.name);
             console.log("Number Of Lines : " + element.numberOfLines);
             console.log("Complexity : " + element.cycolomaticComplexity);
         });
         vscode_1.window.showInformationMessage("Number of Functions :" + myObject.numberOfFunctions);
-        vscode_1.window.showWarningMessage("Foo");
+        //window.showWarningMessage("Foo");
         let diagnostics = [];
         let lines = editor.document.getText().split(/\r?\n/g);
         lines.forEach((line, i) => {
@@ -133,8 +124,6 @@ class CleanCode {
         });
         let alDiagnostics = vscode_1.languages.createDiagnosticCollection("alDiagnostics");
         alDiagnostics.set(editor.document.uri, diagnostics);
-        // Send the computed diagnostics to VS Code.
-        //connection.sendDiagnostics({ uri: change.document.uri, diagnostics });
     }
 }
 class alObject {
@@ -167,6 +156,9 @@ class alFunction {
         this.name = getCharsBefore(content, "(");
         this.cycolomaticComplexity = (this.contentUpperCase.split("IF ").length - 1) +
             (this.contentUpperCase.split("CASE ").length - 1) + (this.contentUpperCase.split("ELSE ").length - 1);
+        this.vocabulary = this.distinctOperands + this.distinctOperators;
+        this.length = this.numberOfOperands + this.numberOfOperators;
+        this.halsteadVolume = this.length * Math.log2(this.vocabulary);
     }
 }
 function getCharsBefore(str, chr) {

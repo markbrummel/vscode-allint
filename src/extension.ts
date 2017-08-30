@@ -2,14 +2,6 @@
 import * as vscode from 'vscode';
 import { TextLine, TextEditor, commands, window, ExtensionContext, Range, Position, StatusBarItem, StatusBarAlignment, TextDocument, Disposable, DiagnosticSeverity, Diagnostic, languages } from "vscode";
 
-        // var i:number = 0;
-        // for (1;i<editor.document.lineCount;1){
-        //     let range = new Range(i, 0, i, 1000);
-        //     let testText = editor.document.getText(range);
-        //     console.log('Line ' + i+1 + ' - ' + testText);
-        //     i+=1;
-        // }
-
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 export function activate(context: ExtensionContext) {
@@ -20,12 +12,12 @@ export function activate(context: ExtensionContext) {
     //console.log('Congratulations, your extension "WordCount" is now active!');
     
     // create a new word counter
-    let wordCounter = new WordCounter();
-    let controller = new WordCounterController(wordCounter);
+    let maintainabilityIndex = new MaintainabilityIndex();
+    let controller = new MaintainabilityIndexController(maintainabilityIndex);
 
     // Add to a list of disposables which are disposed when this extension is deactivated.
     context.subscriptions.push(controller);
-    context.subscriptions.push(wordCounter);
+    context.subscriptions.push(maintainabilityIndex);
 
     let ccode = new CleanCode();
 
@@ -34,9 +26,9 @@ export function activate(context: ExtensionContext) {
     })
     let ccodedisp = commands.registerCommand('CleanCode', () => {
         ccode.CleanCode(window.activeTextEditor);
-        wordCounter.updateWordCount();
+        maintainabilityIndex.updateMaintainabilityIndex();
     })
-    context.subscriptions.push(wordCounter);
+    context.subscriptions.push(maintainabilityIndex);
     context.subscriptions.push(refactordisp);
     context.subscriptions.push(ccodedisp);
 }
@@ -45,11 +37,11 @@ export function activate(context: ExtensionContext) {
 export function deactivate() {
 }
 
-class WordCounter {
+class MaintainabilityIndex {
     
     private _statusBarItem: StatusBarItem;
 
-    public updateWordCount() {
+    public updateMaintainabilityIndex() {
 
         // Create as needed
         if (!this._statusBarItem) {
@@ -67,17 +59,17 @@ class WordCounter {
 
         // Only update status if an Markdown file
         if (doc.languageId === "al") {
-            let wordCount = this._getWordCount(doc);
+            let maintainabilityIndex = this._getMaintainabilityIndex(doc);
 
             // Update the status bar
-            this._statusBarItem.text = wordCount !== 1 ? `${wordCount} Words` : '1 Word';
+            this._statusBarItem.text = maintainabilityIndex !== 1 ? `Maintainability Index ${maintainabilityIndex}` : 'Maintainability Index Undefined';
             this._statusBarItem.show();
         } else { 
             this._statusBarItem.hide();
         }
     }
 
-    public _getWordCount(doc: TextDocument): number {
+    public _getMaintainabilityIndex(doc: TextDocument): number {
 
         let docContent = doc.getText();
 
@@ -97,13 +89,13 @@ class WordCounter {
     }
 }
 
-class WordCounterController {
+class MaintainabilityIndexController {
 
-    private _wordCounter: WordCounter;
+    private _maintainabilityIndex: MaintainabilityIndex;
     private _disposable: Disposable;
 
-    constructor(wordCounter: WordCounter) {
-        this._wordCounter = wordCounter;
+    constructor(wordCounter: MaintainabilityIndex) {
+        this._maintainabilityIndex = wordCounter;
 
         // subscribe to selection change and editor activation events
         let subscriptions: Disposable[] = [];
@@ -111,7 +103,7 @@ class WordCounterController {
         window.onDidChangeActiveTextEditor(this._onEvent, this, subscriptions);
 
         // update the counter for the current file
-        this._wordCounter.updateWordCount();
+        this._maintainabilityIndex.updateMaintainabilityIndex();
 
         // create a combined disposable from both event subscriptions
         this._disposable = Disposable.from(...subscriptions);
@@ -122,7 +114,7 @@ class WordCounterController {
     }
 
     private _onEvent() {
-        this._wordCounter.updateWordCount();
+        this._maintainabilityIndex.updateMaintainabilityIndex();
     }
 }
 
@@ -142,18 +134,16 @@ class CleanCode {
         console.log('CleanCode' + editor.document.lineCount);
 
         let myObject = new alObject(editor.document.getText(new Range(0,0,1000,1000)));
-        //console.log(alObject.getContent());
         console.log("Object Type :" + myObject.objectType);
         console.log("Number of Functions :" + myObject.numberOfFunctions);
 
         myObject.alFunction.forEach(element => {
-            //console.log(element.content);
             console.log("Function Name : " + element.name);
             console.log("Number Of Lines : " + element.numberOfLines);
             console.log("Complexity : " + element.cycolomaticComplexity);
         })
         window.showInformationMessage("Number of Functions :" + myObject.numberOfFunctions);
-        window.showWarningMessage("Foo");
+        //window.showWarningMessage("Foo");
 
         let diagnostics: Diagnostic[] = [];
         let lines = editor.document.getText().split(/\r?\n/g);
@@ -167,10 +157,9 @@ class CleanCode {
                 diagnostics.push(test);
             }
         })
+
         let alDiagnostics = languages.createDiagnosticCollection("alDiagnostics");
         alDiagnostics.set(editor.document.uri, diagnostics);
-        // Send the computed diagnostics to VS Code.
-        //connection.sendDiagnostics({ uri: change.document.uri, diagnostics });
 
     }
 }
@@ -191,6 +180,7 @@ class alObject {
     test: string[];
     numberOfFunctions: number;
     objectType: alObjectType;
+    maintainabilityIndex : number;
     constructor(content: string) {
         this.content = content;
         this.test = ["0", "1"];
@@ -220,6 +210,14 @@ class alFunction {
     name: string;
     numberOfLines: number;
     cycolomaticComplexity: number;
+    maintainabilityIndex : number;
+    distinctOperators : number;
+    distinctOperands : number;
+    numberOfOperators : number;
+    numberOfOperands : number;
+    vocabulary : number;
+    length : number;
+    halsteadVolume : number;
     constructor (content :string) {
         this.content = content;
         this.contentUpperCase = content.toUpperCase();
@@ -227,6 +225,9 @@ class alFunction {
         this.name = getCharsBefore(content, "(");
         this.cycolomaticComplexity = (this.contentUpperCase.split("IF ").length -1) +
             (this.contentUpperCase.split("CASE ").length - 1) + (this.contentUpperCase.split("ELSE ").length - 1);
+        this.vocabulary = this.distinctOperands + this.distinctOperators;
+        this.length = this.numberOfOperands + this.numberOfOperators;
+        this.halsteadVolume = this.length * Math.log2(this.vocabulary);
     }
 
 }
