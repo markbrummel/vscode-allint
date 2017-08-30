@@ -4,9 +4,14 @@
     "description": "Check your code for maintainability and upgradability",
     "version": "0.0.1",
     "publisher": "MarkBrummel",
+    "icon": "ALLint_icon.png",
     "engines": {
         "vscode": "^1.14.0"
     },
+     "repository": {
+        "type": "git",
+        "url": "https://github.com/markbrummel/vscode-allint.git"
+      },
     "categories": [
         "Other"
     ],
