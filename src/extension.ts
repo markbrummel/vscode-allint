@@ -42,7 +42,6 @@ class MaintainabilityIndex {
     private _statusBarItem: StatusBarItem;
 
     public updateMaintainabilityIndex() {
-
         // Create as needed
         if (!this._statusBarItem) {
             this._statusBarItem = window.createStatusBarItem(StatusBarAlignment.Left);
@@ -55,11 +54,12 @@ class MaintainabilityIndex {
             return;
         }
 
+        let myObject = new alObject(editor.document.getText(new Range(0,0,1000,1000)));
         let doc = editor.document;
 
         // Only update status if an Markdown file
         if (doc.languageId === "al") {
-            let maintainabilityIndex = this._getMaintainabilityIndex(doc);
+            let maintainabilityIndex = myObject.maintainabilityIndex;//this._getMaintainabilityIndex(doc);
 
             // Update the status bar
             this._statusBarItem.text = maintainabilityIndex !== 1 ? `Maintainability Index ${maintainabilityIndex}` : 'Maintainability Index Undefined';
@@ -130,6 +130,7 @@ class CleanCode {
     private RefactorToFunction(line: TextLine) {
         console.log('Refactor' + line.text);
     }
+
     private CleanCodeCheck(editor: TextEditor) {
         console.log('CleanCode' + editor.document.lineCount);
 
@@ -188,13 +189,16 @@ class alObject {
         this.content = content;
         this.test = ["0", "1"];
         this.alFunction = [];
-
+        this.maintainabilityIndex = 0;
         var functions = content.toUpperCase().split("PROCEDURE");
         for(var i=1; i<functions.length; i++){ 
             var test = functions[i];
             this.alFunction.push();
             var p = i - 1;
             this.alFunction[p] = new alFunction(functions[i]);
+            if (this.alFunction[p].maintainabilityIndex > this.maintainabilityIndex) {
+                this.maintainabilityIndex = this.alFunction[p].maintainabilityIndex;
+            }
         } 
         this.numberOfFunctions = this.content.split("PROCEDURE ").length - 1;
         this.objectType = getObjectType(content);
@@ -227,7 +231,7 @@ class alFunction {
     constructor (content :string) {
         this.content = content.trim();
         this.contentUpperCase = this.content.toUpperCase();
-        this.numberOfLines = this.content.split("\n").length;
+        this.numberOfLines = 0;//this.content.split("\n").length;
         this.name = getCharsBefore(this.content, "(");
         let lines = this.content.split(/\r?\n/g);
 
@@ -264,6 +268,7 @@ class alFunction {
             }
             if ((inCodeSection) && (line.length > 0)) {
                 this.businessLogic = this.businessLogic + line.trim();
+                this.numberOfLines++;
             }
             if (line.indexOf('BEGIN') > 0) {
                 inVariableSection = false;
@@ -275,13 +280,14 @@ class alFunction {
             }
         })
 
-        this.length = getLength(this.businessLogic);
+        this.length = getHalstead(this.businessLogic, false);
+        this.vocabulary = getHalstead(this.businessLogic, true);
 
         this.cycolomaticComplexity = (this.contentUpperCase.split("IF ").length -1) +
             (this.contentUpperCase.split("CASE ").length - 1) + (this.contentUpperCase.split("ELSE ").length - 1);
-        this.vocabulary = this.distinctOperands + this.distinctOperators;
-        //this.length = this.numberOfOperands + this.numberOfOperators;
+
         this.halsteadVolume = this.length * Math.log2(this.vocabulary);
+        this.maintainabilityIndex = Math.max(0,(171 - 5.2 * Math.log(this.halsteadVolume) - 0.23 * (this.cycolomaticComplexity) - 16.2 * Math.log(this.numberOfLines))*100 / 171)
     }
 
 }
@@ -335,31 +341,129 @@ function getObjectType(str) {
     return(0);
 }
 
-function getLength(businessLogic: string): number {
+function getHalstead(businessLogic: string, unique: boolean): number {
     
     var vocabulary : number = 0;
+    var length : number = 0;
     var word : string = "";
     var allWords: string[] = [];
-// To Do : String is one operator
+    var p: number = 0;
+    var useSpace: boolean = false;
+    var usePeriod: boolean = false; 
+    var useComma: boolean = false; 
+    var useColon: boolean = false;
+    var useSemiColon: boolean = false;
+    var useParentheses: boolean = false;
+    
+    // To Do : String is one operator
     for (var i = 0; i < businessLogic.length; i++) {
         if (businessLogic.charAt(i) == ' ') {
-            vocabulary++;
-            allWords.push();
+            length++;
+            if (word != ""){
+                allWords.push();
+                allWords[p] = word;
+                p++;    
+            }
             word = "";
+            useSpace = true;
         }
         else if (businessLogic.charAt(i) == '.') {
-            vocabulary++;
+            length++;
+            if (word != ""){
+                allWords.push();
+                allWords[p] = word;
+                p++;    
+            }
             word = "";
+            usePeriod = true;
         }
         else if (businessLogic.charAt(i) == ',') {
-            vocabulary++;
+            length++;
+            if (word != ""){
+                allWords.push();
+                allWords[p] = word;
+                p++;    
+            }
             word = "";
+            useComma = true;
+        }
+        else if (businessLogic.charAt(i) == ';') {
+            length++;
+            if (word != ""){
+                allWords.push();
+                allWords[p] = word;
+                p++;    
+            }
+            word = "";
+            useSemiColon = true;
+        }
+        else if (businessLogic.charAt(i) == ')') {
+            length++;
+            if (word != ""){
+                allWords.push();
+                allWords[p] = word;
+                p++;    
+            }
+            word = "";
+            useParentheses = true;
+        }
+        else if (businessLogic.charAt(i) == '(') {
+            length++;
+            if (word != ""){
+                allWords.push();
+                allWords[p] = word;
+                p++;    
+            }
+            word = "";
+        }
+        else if (businessLogic.charAt(i) == ':') {
+            length++;
+            if (word != ""){
+                allWords.push();
+                allWords[p] = word;
+                p++;    
+            }
+            word = "";
+            useColon = true;
         }
         else
             word = word + businessLogic.charAt(i);
     }
 
-    return vocabulary;
+    if (unique) {
+        if (useColon) {
+            vocabulary ++;
+        }
+        if (useComma) {
+            vocabulary ++;
+        }
+        if (useParentheses) {
+            vocabulary ++;
+        }
+        if (useParentheses) {
+            vocabulary ++;
+        }
+        if (useSemiColon) {
+            vocabulary ++;
+        }
+        if (useSpace) {
+            vocabulary ++;
+        }
+        //list = list.filter((x, i, a) => a.indexOf(x) == i)
+        allWords.filter((x, i, a) => a.indexOf(x) == i);
+        var distinctWords: string[] = [];       
+        for(var i=0;i<allWords.length;i++) {
+            var str=allWords[i];
+            if(distinctWords.indexOf(str)==-1) {
+                distinctWords.push(str);
+            }
+        }
+        vocabulary = vocabulary + distinctWords.length;
+        return vocabulary;
+    } 
+    else {
+        return length;        
+    }
 
 //    let docContent = doc.getText();
 
