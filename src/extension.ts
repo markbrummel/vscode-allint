@@ -139,8 +139,11 @@ class CleanCode {
 
         myObject.alFunction.forEach(element => {
             console.log("Function Name : " + element.name);
-            console.log("Number Of Lines : " + element.numberOfLines);
-            console.log("Complexity : " + element.cycolomaticComplexity);
+            element.alVariable.forEach(element => {
+                console.log("Variable Name : " + element.name + " Type : " + element.type);                
+            }); 
+            //console.log("Number Of Lines : " + element.numberOfLines);
+            //console.log("Complexity : " + element.cycolomaticComplexity);
         })
         window.showInformationMessage("Number of Functions :" + myObject.numberOfFunctions);
         //window.showWarningMessage("Foo");
@@ -208,6 +211,7 @@ class alFunction {
     content: string;
     contentUpperCase: string;
     name: string;
+    alVariable: alVariable[];
     numberOfLines: number;
     cycolomaticComplexity: number;
     maintainabilityIndex : number;
@@ -218,18 +222,97 @@ class alFunction {
     vocabulary : number;
     length : number;
     halsteadVolume : number;
+    returnValue : string;
+    businessLogic : string;
     constructor (content :string) {
-        this.content = content;
-        this.contentUpperCase = content.toUpperCase();
-        this.numberOfLines = content.split("\n").length;
-        this.name = getCharsBefore(content, "(");
+        this.content = content.trim();
+        this.contentUpperCase = this.content.toUpperCase();
+        this.numberOfLines = this.content.split("\n").length;
+        this.name = getCharsBefore(this.content, "(");
+        let lines = this.content.split(/\r?\n/g);
+
+        var inCodeSection : boolean = false;
+        var inVariableSection : boolean = false;
+        this.alVariable = [];
+        this.businessLogic = "";
+        var p : number = 0;
+
+        // Get Variables
+        lines.forEach((line, i) => {
+            if (i == 0) {
+                var variableString : string = line.substring(line.indexOf('('));
+                if (variableString.endsWith(');')) {
+                    variableString = variableString.substring(1, variableString.length - 1);                    
+                }
+                else {
+                    this.returnValue = variableString.substring(variableString.indexOf(')'))
+                    variableString = variableString.substring(1, variableString.length - this.returnValue.length);
+                    this.returnValue.replace(':', '').replace(';', '');
+                }
+                let variables = variableString.split(';');
+                variables.forEach((variable, i) => {
+                    this.alVariable.push();
+                    this.alVariable[p] = new alVariable(variable);
+                    this.alVariable[p].local = true;
+                    this.alVariable[p].parameter = true;
+                    p++;
+                })
+               // breaddownProcedureVariables(line);
+            }
+            if ((i == 1) && (line.indexOf('VAR') > 0)) {
+                inVariableSection = true;
+            }
+            if ((inCodeSection) && (line.length > 0)) {
+                this.businessLogic = this.businessLogic + line.trim();
+            }
+            if (line.indexOf('BEGIN') > 0) {
+                inVariableSection = false;
+                inCodeSection = true;
+            }
+            if ((inVariableSection) && (i > 1)) {
+                this.alVariable[p] = new alVariable(line);
+                p++;
+            }
+        })
+
+        this.length = getLength(this.businessLogic);
+
         this.cycolomaticComplexity = (this.contentUpperCase.split("IF ").length -1) +
             (this.contentUpperCase.split("CASE ").length - 1) + (this.contentUpperCase.split("ELSE ").length - 1);
         this.vocabulary = this.distinctOperands + this.distinctOperators;
-        this.length = this.numberOfOperands + this.numberOfOperators;
+        //this.length = this.numberOfOperands + this.numberOfOperators;
         this.halsteadVolume = this.length * Math.log2(this.vocabulary);
     }
 
+}
+
+class alVariable {
+    content : string;
+    name: string;
+    local: boolean;
+    parameter : boolean;
+    byRef : boolean;
+    type: string;
+    length: string;
+    used: number;
+    objectId: string;
+    constructor (value : string) {
+        this.content = value.trim().replace(';', '').replace(')', '');
+        if (this.content.startsWith('VAR')) {
+            this.content = this.content.substring(4);
+            this.byRef = true;
+        } 
+        this.name = this.content.substring(0, this.content.indexOf(':') - 1);
+        this.type = this.content.substring(this.content.indexOf(':') + 2)
+        if (this.type.indexOf(' ') > 0) {
+            this.objectId = this.type.substring(this.type.indexOf(' ') + 1);
+            this.type = this.type.substring(0, this.type.indexOf(' '));
+        }
+        if (this.content.endsWith(']')) {
+            this.length = this.content.substring(this.content.indexOf('[') + 1, this.content.indexOf(']'));            
+        }
+
+    }
 }
 
 function getCharsBefore(str, chr) {
@@ -250,4 +333,42 @@ function getObjectType(str) {
 
     }
     return(0);
+}
+
+function getLength(businessLogic: string): number {
+    
+    var vocabulary : number = 0;
+    var word : string = "";
+    var allWords: string[] = [];
+// To Do : String is one operator
+    for (var i = 0; i < businessLogic.length; i++) {
+        if (businessLogic.charAt(i) == ' ') {
+            vocabulary++;
+            allWords.push();
+            word = "";
+        }
+        else if (businessLogic.charAt(i) == '.') {
+            vocabulary++;
+            word = "";
+        }
+        else if (businessLogic.charAt(i) == ',') {
+            vocabulary++;
+            word = "";
+        }
+        else
+            word = word + businessLogic.charAt(i);
+    }
+
+    return vocabulary;
+
+//    let docContent = doc.getText();
+
+    // Parse out unwanted whitespace so the split is accurate
+//    docContent = docContent.replace(/(< ([^>]+)<)/g, '').replace(/\s+/g, ' ');
+//    docContent = docContent.replace(/^\s\s*/, '').replace(/\s\s*$/, '');
+//    let wordCount = 0;
+//    if (docContent != "") {
+//        wordCount = docContent.split(" ").length;
+//    }
+//    return wordCount;
 }
