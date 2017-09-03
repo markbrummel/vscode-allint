@@ -54,34 +54,34 @@ class MaintainabilityIndex {
             return;
         }
 
-        let myObject = new alObject(editor.document.getText(new Range(0,0,1000,1000)));
         let doc = editor.document;
-
+        
         // Only update status if an Markdown file
         if (doc.languageId === "al") {
-            let maintainabilityIndex = myObject.maintainabilityIndex;//this._getMaintainabilityIndex(doc);
+            let myObject = new alObject(editor);
+            
+            getDiagnostics(editor, myObject);
 
+            let maintainabilityIndex = myObject.getMaintainabilityIndex(editor.document.lineAt(editor.selection.active.line));
+            let cyclomaticComplexity = myObject.getCyclomaticComplexity(editor.document.lineAt(editor.selection.active.line));
+            var currentFunctionName : string = myObject.getCurrentFunction(editor.document.lineAt(editor.selection.active.line));
+
+            var theText = currentFunctionName + ` Maintainability Index ${maintainabilityIndex}` + ` cc ${cyclomaticComplexity}` + ` functions : ${myObject.numberOfFunctions}`;
             // Update the status bar
-            this._statusBarItem.text = maintainabilityIndex !== 1 ? `Maintainability Index ${maintainabilityIndex}` : 'Maintainability Index Undefined';
+            this._statusBarItem.text = maintainabilityIndex !== 1 ? theText : 'Maintainability Index Undefined';
+            if (maintainabilityIndex >= 20) {
+                this._statusBarItem.color = 'lightgreen';
+            }
+            else if (maintainabilityIndex >= 10) {
+                this._statusBarItem.color = 'orange';
+            }
+            else if (maintainabilityIndex != 0) {
+                this._statusBarItem.color = 'red'; 
+            }           
             this._statusBarItem.show();
         } else { 
             this._statusBarItem.hide();
         }
-    }
-
-    public _getMaintainabilityIndex(doc: TextDocument): number {
-
-        let docContent = doc.getText();
-
-        // Parse out unwanted whitespace so the split is accurate
-        docContent = docContent.replace(/(< ([^>]+)<)/g, '').replace(/\s+/g, ' ');
-        docContent = docContent.replace(/^\s\s*/, '').replace(/\s\s*$/, '');
-        let wordCount = 0;
-        if (docContent != "") {
-            wordCount = docContent.split(" ").length;
-        }
-
-        return wordCount;
     }
 
     dispose() {
@@ -94,8 +94,8 @@ class MaintainabilityIndexController {
     private _maintainabilityIndex: MaintainabilityIndex;
     private _disposable: Disposable;
 
-    constructor(wordCounter: MaintainabilityIndex) {
-        this._maintainabilityIndex = wordCounter;
+    constructor(theIndex: MaintainabilityIndex) {
+        this._maintainabilityIndex = theIndex;
 
         // subscribe to selection change and editor activation events
         let subscriptions: Disposable[] = [];
@@ -127,6 +127,7 @@ class CleanCode {
     public CleanCode(editor: TextEditor) {
         this.CleanCodeCheck(editor);
     }
+
     private RefactorToFunction(line: TextLine) {
         console.log('Refactor' + line.text);
     }
@@ -134,36 +135,9 @@ class CleanCode {
     private CleanCodeCheck(editor: TextEditor) {
         console.log('CleanCode' + editor.document.lineCount);
 
-        let myObject = new alObject(editor.document.getText(new Range(0,0,1000,1000)));
-        console.log("Object Type :" + myObject.objectType);
-        console.log("Number of Functions :" + myObject.numberOfFunctions);
-
-        myObject.alFunction.forEach(element => {
-            console.log("Function Name : " + element.name);
-            element.alVariable.forEach(element => {
-                console.log("Variable Name : " + element.name + " Type : " + element.type);                
-            }); 
-            //console.log("Number Of Lines : " + element.numberOfLines);
-            //console.log("Complexity : " + element.cycolomaticComplexity);
-        })
-        window.showInformationMessage("Number of Functions :" + myObject.numberOfFunctions);
-        //window.showWarningMessage("Foo");
-
-        let diagnostics: Diagnostic[] = [];
-        let lines = editor.document.getText().split(/\r?\n/g);
-        lines.forEach((line, i) => {
-            let index = line.indexOf('COMMIT');
-            if (index >= 0) {
-                let test = new Diagnostic(new Range(new vscode.Position(i, index), new vscode.Position(i, index + 10)),
-                    'Commit is dangerous and should be avoided (NAV-Skills Clean Code)',
-                    DiagnosticSeverity.Information);
-
-                diagnostics.push(test);
-            }
-        })
-
-        let alDiagnostics = languages.createDiagnosticCollection("alDiagnostics");
-        alDiagnostics.set(editor.document.uri, diagnostics);
+        let myObject = new alObject(editor);
+        getDiagnostics(editor, myObject);
+//        window.showInformationMessage("Number of Functions :" + myObject.numberOfFunctions);
 
     }
 }
@@ -185,29 +159,78 @@ class alObject {
     numberOfFunctions: number;
     objectType: alObjectType;
     maintainabilityIndex : number;
-    constructor(content: string) {
-        this.content = content;
+    constructor(theText: TextEditor) {
+        this.content = theText.document.getText(new Range(0,0,1000,1000));
         this.test = ["0", "1"];
         this.alFunction = [];
-        this.maintainabilityIndex = 0;
-        var functions = content.toUpperCase().split("PROCEDURE");
-        for(var i=1; i<functions.length; i++){ 
-            var test = functions[i];
-            this.alFunction.push();
-            var p = i - 1;
-            this.alFunction[p] = new alFunction(functions[i]);
-            if (this.alFunction[p].maintainabilityIndex > this.maintainabilityIndex) {
-                this.maintainabilityIndex = this.alFunction[p].maintainabilityIndex;
+        this.maintainabilityIndex = 171;
+        this.numberOfFunctions = 0;
+        var p : number = 0;
+        var functionContent : string = "";
+        var startsAt : number = 0;
+        var firstTime : boolean = false;
+
+        let lines = this.content.split(/\r?\n/g);
+        lines.forEach((line, i) => {
+            if (line.trim().toUpperCase().startsWith('PROCEDURE')) {
+                if (firstTime == true) {
+                    this.alFunction.push();
+                    p++;
+                    this.alFunction[p] = new alFunction(functionContent, startsAt, i);
+                    if (this.alFunction[p].maintainabilityIndex < this.maintainabilityIndex) {
+                        this.maintainabilityIndex = this.alFunction[p].maintainabilityIndex;
+                    }
+                    functionContent = "";
+                }
+                firstTime = true;
+                startsAt = i + 1;
+
+                this.numberOfFunctions++;
             }
-        } 
-        this.numberOfFunctions = this.content.split("PROCEDURE ").length - 1;
-        this.objectType = getObjectType(content);
+            if (firstTime) {
+                functionContent = functionContent + line + '\n';                   
+            }
+        })         
+        this.alFunction.push();
+        p++;
+        this.alFunction[p] = new alFunction(functionContent, startsAt, lines.length);
+        if (this.alFunction[p].maintainabilityIndex < this.maintainabilityIndex) {
+            this.maintainabilityIndex = this.alFunction[p].maintainabilityIndex;
+        }
+        this.objectType = getObjectType(this.content);
     }
     getContent() {
         return this.content;
     }1
     getNumberOfFunctions() {
         return this.content.split("PROCEDURE ").length - 1;
+    }
+    getCurrentFunction(line : TextLine) : string {
+        var currentFuctionName : string = "Not in function";
+        this.alFunction.forEach(element => {
+            if ((element.startsAtLineNo < line.lineNumber) && (element.endsAtLineNo > line.lineNumber)) {
+                currentFuctionName = element.name;
+            }
+        })
+        return(currentFuctionName)
+    }
+    getMaintainabilityIndex(line : TextLine) : number {
+        var currentMaintainabilityIndex : number = 0;
+        this.alFunction.forEach(element => {
+            if ((element.startsAtLineNo < line.lineNumber) && (element.endsAtLineNo > line.lineNumber)) {
+                currentMaintainabilityIndex = element.maintainabilityIndex;
+            }
+        })
+        return(currentMaintainabilityIndex)
+    }
+    getCyclomaticComplexity(line : TextLine) : number {
+        var currentCyclomaticComplexity : number = 0;
+        this.alFunction.forEach(element => {
+            if ((element.startsAtLineNo < line.lineNumber) && (element.endsAtLineNo > line.lineNumber)) {
+                currentCyclomaticComplexity = element.cycolomaticComplexity;
+            }
+        })
+        return(currentCyclomaticComplexity)
     }
 }
 
@@ -228,12 +251,16 @@ class alFunction {
     halsteadVolume : number;
     returnValue : string;
     businessLogic : string;
-    constructor (content :string) {
+    startsAtLineNo : number;
+    endsAtLineNo : number;
+    constructor (content :string, startsAt : number, endsAt : number) {
         this.content = content.trim();
+        this.startsAtLineNo  = startsAt;
+        this.endsAtLineNo = endsAt;
         this.contentUpperCase = this.content.toUpperCase();
         this.numberOfLines = 0;//this.content.split("\n").length;
         this.name = getCharsBefore(this.content, "(");
-        let lines = this.content.split(/\r?\n/g);
+        let lines = this.content.toUpperCase().split(/\r?\n/g);
 
         var inCodeSection : boolean = false;
         var inVariableSection : boolean = false;
@@ -254,9 +281,9 @@ class alFunction {
                     this.returnValue.replace(':', '').replace(';', '');
                 }
                 let variables = variableString.split(';');
-                variables.forEach((variable, i) => {
+                variables.forEach((variable, n) => {
                     this.alVariable.push();
-                    this.alVariable[p] = new alVariable(variable);
+                    this.alVariable[p] = new alVariable(variable, i + startsAt);
                     this.alVariable[p].local = true;
                     this.alVariable[p].parameter = true;
                     p++;
@@ -275,7 +302,7 @@ class alFunction {
                 inCodeSection = true;
             }
             if ((inVariableSection) && (i > 1)) {
-                this.alVariable[p] = new alVariable(line);
+                this.alVariable[p] = new alVariable(line, i + startsAt);
                 p++;
             }
         })
@@ -287,13 +314,13 @@ class alFunction {
             (this.contentUpperCase.split("CASE ").length - 1) + (this.contentUpperCase.split("ELSE ").length - 1);
 
         this.halsteadVolume = this.length * Math.log2(this.vocabulary);
-        this.maintainabilityIndex = Math.max(0,(171 - 5.2 * Math.log(this.halsteadVolume) - 0.23 * (this.cycolomaticComplexity) - 16.2 * Math.log(this.numberOfLines))*100 / 171)
+        this.maintainabilityIndex = Math.round(Math.max(0,(171 - 5.2 * Math.log(this.halsteadVolume) - 0.23 * (this.cycolomaticComplexity) - 16.2 * Math.log(this.numberOfLines))*100 / 171));
     }
 
 }
 
 class alVariable {
-    content : string;
+    content: string;
     name: string;
     local: boolean;
     parameter : boolean;
@@ -302,8 +329,13 @@ class alVariable {
     length: string;
     used: number;
     objectId: string;
-    constructor (value : string) {
+    lineNumber: number;
+    isHungarianNotation: boolean;
+    suggestedName: string;
+    constructor (value : string, lineNo : number) {
         this.content = value.trim().replace(';', '').replace(')', '');
+        this.lineNumber = lineNo;
+        this.isHungarianNotation = true;
         if (this.content.startsWith('VAR')) {
             this.content = this.content.substring(4);
             this.byRef = true;
@@ -319,6 +351,39 @@ class alVariable {
         }
 
     }
+}
+
+function getDiagnostics(editor : TextEditor, myObject : alObject) {
+    let diagnostics: Diagnostic[] = [];
+    let lines = editor.document.getText().split(/\r?\n/g);
+    lines.forEach((line, i) => {
+        let index = line.indexOf('COMMIT');
+        if (index >= 0) {
+            let myDiagnose = new Diagnostic(new Range(new vscode.Position(i, index), new vscode.Position(i, index + 10)),
+                'Commit is dangerous and should be avoided (NAV-Skills Clean Code)',
+                DiagnosticSeverity.Information);
+
+            diagnostics.push(myDiagnose);
+        }
+        myObject.alFunction.forEach(element => {
+            element.alVariable.forEach(element => {
+                if ((element.isHungarianNotation) && (element.lineNumber == i + 1)) {
+                    let index = line.toUpperCase().indexOf(element.name);
+                    let myDiagnose = new Diagnostic(new Range(new vscode.Position(i, index), new vscode.Position(i, index + element.name.length)),
+                    'Hungarian Notation Detected (NAV-Skills Clean Code)',
+                    DiagnosticSeverity.Information);
+    
+                diagnostics.push(myDiagnose);
+                        
+                }
+            });
+        });
+
+
+    })
+
+    let alDiagnostics = languages.createDiagnosticCollection("alDiagnostics");
+    alDiagnostics.set(editor.document.uri, diagnostics);
 }
 
 function getCharsBefore(str, chr) {
@@ -464,15 +529,4 @@ function getHalstead(businessLogic: string, unique: boolean): number {
     else {
         return length;        
     }
-
-//    let docContent = doc.getText();
-
-    // Parse out unwanted whitespace so the split is accurate
-//    docContent = docContent.replace(/(< ([^>]+)<)/g, '').replace(/\s+/g, ' ');
-//    docContent = docContent.replace(/^\s\s*/, '').replace(/\s\s*$/, '');
-//    let wordCount = 0;
-//    if (docContent != "") {
-//        wordCount = docContent.split(" ").length;
-//    }
-//    return wordCount;
 }
