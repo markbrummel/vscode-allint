@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const vscode = require("vscode");
 const vscode_1 = require("vscode");
+const open = require('opn');
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 function activate(context) {
@@ -108,7 +109,10 @@ class CleanCode {
         console.log('CleanCode' + editor.document.lineCount);
         let myObject = new alObject(editor);
         getDiagnostics(editor, myObject);
-        //        window.showInformationMessage("Number of Functions :" + myObject.numberOfFunctions);
+        //        let workspace.rootPath:string;
+        var htmlURL = "file:///C:/Users/markb/vscode-allint/allint.html?ddd3=mark";
+        open(htmlURL);
+        vscode_1.window.showInformationMessage(htmlURL);
     }
 }
 class alObject {

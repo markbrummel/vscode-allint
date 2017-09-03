@@ -2,6 +2,8 @@
 import * as vscode from 'vscode';
 import { TextLine, TextEditor, commands, window, ExtensionContext, Range, Position, StatusBarItem, StatusBarAlignment, TextDocument, Disposable, DiagnosticSeverity, Diagnostic, languages } from "vscode";
 
+const open = require('opn');
+
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 export function activate(context: ExtensionContext) {
@@ -137,7 +139,12 @@ class CleanCode {
 
         let myObject = new alObject(editor);
         getDiagnostics(editor, myObject);
-//        window.showInformationMessage("Number of Functions :" + myObject.numberOfFunctions);
+//        let workspace.rootPath:string;
+
+        var htmlURL : string = "file:///C:/Users/markb/vscode-allint/allint.html?ddd3=mark"
+
+        open(htmlURL);
+        window.showInformationMessage(htmlURL);
 
     }
 }

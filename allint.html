@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<meta charset="utf-8">
+<title>Clean Code Analysis</title>
+<link rel="stylesheet" href="allint.css">
+<body>
+    <h1>Clean Code Analysis</h1>
+    <script type="text/javascript">
+        function getParams() {
+
+        var params = {},
+            pairs = document.URL.split('?')
+                .pop()
+                .split('&');
+
+        for (var i = 0, p; i < pairs.length; i++) {
+            p = pairs[i].split('=');
+            params[ p[0] ] =  p[1];
+        }     
+
+
+        return params;
+    } 
+    params = getParams();
+    
+    for( var i in params ){
+        document.write( i , params[i] );
+    }
+    </script>
+        
+
+</body>
+</html>
