@@ -2,16 +2,16 @@
     "name": "nav-skills-al-clean-code",
     "displayName": "NAV Skills AL Clean Code",
     "description": "Check your code for maintainability and upgradability",
-    "version": "0.0.1",
+    "version": "0.1.0",
     "publisher": "MarkBrummel",
     "icon": "ALLint_icon.png",
     "engines": {
         "vscode": "^1.14.0"
     },
-     "repository": {
+    "repository": {
         "type": "git",
         "url": "https://github.com/markbrummel/vscode-allint.git"
-      },
+    },
     "categories": [
         "Other"
     ],
@@ -22,14 +22,16 @@
     ],
     "main": "./out/src/extension",
     "contributes": {
-        "commands": [{
-            "command": "Refactor",
-            "title": "AL: Refactor (NAV-Skills)"
-        },
-        {
-            "command": "CleanCode",
-            "title": "AL: Clean Code (NAV-Skills)"
-        }]
+        "commands": [
+            {
+                "command": "Refactor",
+                "title": "AL: Refactor (NAV-Skills)"
+            },
+            {
+                "command": "CleanCode",
+                "title": "AL: Clean Code (NAV-Skills)"
+            }
+        ]
     },
     "scripts": {
         "vscode:prepublish": "tsc -p ./",
