@@ -145,6 +145,7 @@ class CleanCode {
 
         open(htmlURL);
         window.showInformationMessage(htmlURL);
+        window.showInformationMessage(JSON.stringify(myObject.getSummary));
 
     }
 }
@@ -165,7 +166,9 @@ class alObject {
     test: string[];
     numberOfFunctions: number;
     objectType: alObjectType;
+    objectID: number;
     maintainabilityIndex : number;
+    name: string;
     constructor(theText: TextEditor) {
         this.content = theText.document.getText(new Range(0,0,1000,1000));
         this.test = ["0", "1"];
@@ -179,7 +182,18 @@ class alObject {
 
         let lines = this.content.split(/\r?\n/g);
         lines.forEach((line, i) => {
-            if (line.trim().toUpperCase().startsWith('PROCEDURE')) {
+            if (i==0) {
+                let objectDetails = line.split(' ');
+                objectDetails.forEach((part, n) => {
+                    if (n == 2) {
+                        //this.objectID = part;
+                    }
+                    if (n == 3) {
+                        this.name = part;
+                    }
+                })
+            }
+            if (validProcedureName(line.trim().toUpperCase())) {
                 if (firstTime == true) {
                     this.alFunction.push();
                     p++;
@@ -238,6 +252,10 @@ class alObject {
             }
         })
         return(currentCyclomaticComplexity)
+    }
+    getSummary() : alSummary {
+        let mySummary = new alSummary(this);
+        return(mySummary);
     }
 }
 
@@ -357,6 +375,13 @@ class alVariable {
             this.length = this.content.substring(this.content.indexOf('[') + 1, this.content.indexOf(']'));            
         }
 
+    }
+}
+
+class alSummary {
+    content: string;
+    constructor (alObject :alObject) {
+        this.content = alObject.name;
     }
 }
 
@@ -536,4 +561,17 @@ function getHalstead(businessLogic: string, unique: boolean): number {
     else {
         return length;        
     }
+}
+
+function validProcedureName(value : string) :boolean {
+    if (value.startsWith('PROCEDURE')) {
+        return(true);
+    }
+    if (value.startsWith('LOCAL PROCEDURE')) {
+        return(true);
+    }
+    if (value.startsWith('TRIGGER')) {
+        return(true);
+    }
+    return false;
 }

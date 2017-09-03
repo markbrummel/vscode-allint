@@ -113,6 +113,7 @@ class CleanCode {
         var htmlURL = "file:///C:/Users/markb/vscode-allint/allint.html?ddd3=mark";
         open(htmlURL);
         vscode_1.window.showInformationMessage(htmlURL);
+        vscode_1.window.showInformationMessage(JSON.stringify(myObject.getSummary));
     }
 }
 class alObject {
@@ -128,7 +129,18 @@ class alObject {
         var firstTime = false;
         let lines = this.content.split(/\r?\n/g);
         lines.forEach((line, i) => {
-            if (line.trim().toUpperCase().startsWith('PROCEDURE')) {
+            if (i == 0) {
+                let objectDetails = line.split(' ');
+                objectDetails.forEach((part, n) => {
+                    if (n == 2) {
+                        //this.objectID = part;
+                    }
+                    if (n == 3) {
+                        this.name = part;
+                    }
+                });
+            }
+            if (validProcedureName(line.trim().toUpperCase())) {
                 if (firstTime == true) {
                     this.alFunction.push();
                     p++;
@@ -186,6 +198,10 @@ class alObject {
             }
         });
         return (currentCyclomaticComplexity);
+    }
+    getSummary() {
+        let mySummary = new alSummary(this);
+        return (mySummary);
     }
 }
 class alFunction {
@@ -266,6 +282,11 @@ class alVariable {
         if (this.content.endsWith(']')) {
             this.length = this.content.substring(this.content.indexOf('[') + 1, this.content.indexOf(']'));
         }
+    }
+}
+class alSummary {
+    constructor(alObject) {
+        this.content = alObject.name;
     }
 }
 function getDiagnostics(editor, myObject) {
@@ -426,5 +447,17 @@ function getHalstead(businessLogic, unique) {
     else {
         return length;
     }
+}
+function validProcedureName(value) {
+    if (value.startsWith('PROCEDURE')) {
+        return (true);
+    }
+    if (value.startsWith('LOCAL PROCEDURE')) {
+        return (true);
+    }
+    if (value.startsWith('TRIGGER')) {
+        return (true);
+    }
+    return false;
 }
 //# sourceMappingURL=extension.js.map
