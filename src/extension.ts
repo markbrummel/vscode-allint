@@ -64,23 +64,27 @@ class MaintainabilityIndex {
             
             getDiagnostics(editor, myObject);
 
-            let maintainabilityIndex = myObject.getMaintainabilityIndex(editor.document.lineAt(editor.selection.active.line));
-            let cyclomaticComplexity = myObject.getCyclomaticComplexity(editor.document.lineAt(editor.selection.active.line));
-            var currentFunctionName : string = myObject.getCurrentFunction(editor.document.lineAt(editor.selection.active.line));
+            let config = Object.assign({}, vscode.workspace.getConfiguration('allint'));
+            
+            if (config.statusbar) {
+                let maintainabilityIndex = myObject.getMaintainabilityIndex(editor.document.lineAt(editor.selection.active.line));
+                let cyclomaticComplexity = myObject.getCyclomaticComplexity(editor.document.lineAt(editor.selection.active.line));
+                var currentFunctionName : string = myObject.getCurrentFunction(editor.document.lineAt(editor.selection.active.line));
 
-            var theText = currentFunctionName + ` Maintainability Index ${maintainabilityIndex}` + ` cc ${cyclomaticComplexity}` + ` functions : ${myObject.numberOfFunctions}`;
-            // Update the status bar
-            this._statusBarItem.text = maintainabilityIndex !== 1 ? theText : 'Maintainability Index Undefined';
-            if (maintainabilityIndex >= 20) {
-                this._statusBarItem.color = 'lightgreen';
+                var theText = currentFunctionName + ` - Maintainability Index : ${maintainabilityIndex}` + ` Cyclomatic Complexity : ${cyclomaticComplexity}`;
+                // Update the status bar
+                this._statusBarItem.text = maintainabilityIndex !== 1 ? theText : 'Maintainability Index Undefined';
+                if (maintainabilityIndex >= 20) {
+                    this._statusBarItem.color = 'lightgreen';
+                }
+                else if (maintainabilityIndex >= 10) {
+                    this._statusBarItem.color = 'orange';
+                }
+                else if (maintainabilityIndex != 0) {
+                    this._statusBarItem.color = 'red'; 
+                }           
+                this._statusBarItem.show();
             }
-            else if (maintainabilityIndex >= 10) {
-                this._statusBarItem.color = 'orange';
-            }
-            else if (maintainabilityIndex != 0) {
-                this._statusBarItem.color = 'red'; 
-            }           
-            this._statusBarItem.show();
         } else { 
             this._statusBarItem.hide();
         }
@@ -278,6 +282,9 @@ class alFunction {
     businessLogic : string;
     startsAtLineNo : number;
     endsAtLineNo : number;
+    isHungarianNotation : boolean = false;
+    isLocal : boolean;
+    isTrigger : boolean;
     constructor (content :string, startsAt : number, endsAt : number) {
         this.content = content.trim();
         this.startsAtLineNo  = startsAt;
@@ -285,6 +292,17 @@ class alFunction {
         this.contentUpperCase = this.content.toUpperCase();
         this.numberOfLines = 0;//this.content.split("\n").length;
         this.name = getCharsBefore(this.content, "(");
+        this.isLocal = this.name.toUpperCase().startsWith('LOCAL');
+        this.isTrigger = this.name.toUpperCase().startsWith('TRIGGER');
+        if (this.isTrigger) {
+            this.name = this.name.substring(8)                
+        }
+        else if (this.isLocal) {
+            this.name = this.name.substring(16)
+        }
+        else {
+            this.name = this.name.substring(10)    
+        }
         let lines = this.content.toUpperCase().split(/\r?\n/g);
 
         var inCodeSection : boolean = false;
@@ -340,6 +358,17 @@ class alFunction {
 
         this.halsteadVolume = this.length * Math.log2(this.vocabulary);
         this.maintainabilityIndex = Math.round(Math.max(0,(171 - 5.2 * Math.log(this.halsteadVolume) - 0.23 * (this.cycolomaticComplexity) - 16.2 * Math.log(this.numberOfLines))*100 / 171));
+        let config = Object.assign({}, vscode.workspace.getConfiguration('allint'));
+        
+        if (config.checkhungariannotation) {
+            let hungarianOptions = new alHungarianOptions(config.hungariannotationoptions);
+            
+            hungarianOptions.alHungarianOption.forEach(hungarianOption => {
+                if ((hungarianOption.alType == 'FUNCTION') && (this.isHungarianNotation == false)) {
+                    this.isHungarianNotation = (this.name.toUpperCase().indexOf(hungarianOption.abbreviation) != -1);
+                }
+            });    
+        }
     }
 
 }
@@ -355,12 +384,11 @@ class alVariable {
     used: number;
     objectId: string;
     lineNumber: number;
-    isHungarianNotation: boolean;
+    isHungarianNotation: boolean = false;
     suggestedName: string;
     constructor (value : string, lineNo : number) {
         this.content = value.trim().replace(';', '').replace(')', '');
         this.lineNumber = lineNo;
-        this.isHungarianNotation = true;
         if (this.content.startsWith('VAR')) {
             this.content = this.content.substring(4);
             this.byRef = true;
@@ -374,7 +402,18 @@ class alVariable {
         if (this.content.endsWith(']')) {
             this.length = this.content.substring(this.content.indexOf('[') + 1, this.content.indexOf(']'));            
         }
-
+        
+        let config = Object.assign({}, vscode.workspace.getConfiguration('allint'));
+        
+        if (config.checkhungariannotation) {
+            let hungarianOptions = new alHungarianOptions(config.hungariannotationoptions);
+            
+            hungarianOptions.alHungarianOption.forEach(hungarianOption => {
+                if ((hungarianOption.alType == this.type) && (this.isHungarianNotation == false)) {
+                    this.isHungarianNotation = (this.name.indexOf(hungarianOption.abbreviation) != -1);
+                }
+            });    
+        }
     }
 }
 
@@ -385,14 +424,56 @@ class alSummary {
     }
 }
 
+class alHungarianOptions {
+    content : string;
+    alHungarianOption : alHungarianOption[];
+    constructor (value : string) {
+        this.alHungarianOption = [];
+        let hungariannotationoptions = value.split(';');
+        hungariannotationoptions.forEach((hungariannotationoption, i) => {
+            this.alHungarianOption.push();
+            this.alHungarianOption[i] = new alHungarianOption(hungariannotationoption);
+        });
+    }
+}
+
+class alHungarianOption {
+    content : string;
+    alType : string;
+    abbreviation : string;
+    constructor (value : string) {
+        this.alType = value.substring(0, value.indexOf(',')).toUpperCase();
+        this.abbreviation = value.substring(value.indexOf(',') + 1).toUpperCase();        
+    }
+}
+
 function getDiagnostics(editor : TextEditor, myObject : alObject) {
     let diagnostics: Diagnostic[] = [];
     let lines = editor.document.getText().split(/\r?\n/g);
+    
+    let config = Object.assign({}, vscode.workspace.getConfiguration('allint'));
+
+    
     lines.forEach((line, i) => {
+
+        myObject.alFunction.forEach((alFunction, p) => {
+            if (alFunction.startsAtLineNo == i + 1) {
+                if (alFunction.isHungarianNotation) {
+                    let index = line.indexOf(alFunction.name);
+                    let myDiagnose = new Diagnostic(new Range(new vscode.Position(i, index), new vscode.Position(i, index + alFunction.name.length)),
+                    'Hungarian Notation (NAV-Skills Clean Code)',
+                    DiagnosticSeverity.Information);
+    
+                diagnostics.push(myDiagnose);
+                        
+                }
+            }
+        });
+
         let index = line.indexOf('COMMIT');
-        if (index >= 0) {
+        if ((index >= 0) && (config.checkcommit)) {
             let myDiagnose = new Diagnostic(new Range(new vscode.Position(i, index), new vscode.Position(i, index + 10)),
-                'Commit is dangerous and should be avoided (NAV-Skills Clean Code)',
+                'A COMMIT is an indication of poorly structured code (NAV-Skills Clean Code)',
                 DiagnosticSeverity.Information);
 
             diagnostics.push(myDiagnose);
@@ -402,7 +483,7 @@ function getDiagnostics(editor : TextEditor, myObject : alObject) {
                 if ((element.isHungarianNotation) && (element.lineNumber == i + 1)) {
                     let index = line.toUpperCase().indexOf(element.name);
                     let myDiagnose = new Diagnostic(new Range(new vscode.Position(i, index), new vscode.Position(i, index + element.name.length)),
-                    'Hungarian Notation Detected (NAV-Skills Clean Code)',
+                    'Hungarian Notation (NAV-Skills Clean Code)',
                     DiagnosticSeverity.Information);
     
                 diagnostics.push(myDiagnose);
