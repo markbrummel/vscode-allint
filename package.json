@@ -2,7 +2,7 @@
     "name": "allint",
     "displayName": "NAV Skills AL Lint",
     "description": "Check your code for maintainability and upgradability",
-    "version": "0.1.0",
+    "version": "0.1.1",
     "publisher": "MarkBrummel",
     "icon": "ALLint_icon.png",
     "engines": {
@@ -24,52 +24,36 @@
     "main": "./out/src/extension",
     "contributes": {
         "configuration": {
-            
-                        "type": "object",
-            
-                        "title": "AlLint",
-            
-                        "properties": {
-            
-                            "allint.enabled": {
-            
-                                "type": "boolean",
-            
-                                "default": true,
-            
-                                "description": "Whether or not this extension is enabled"
-            
-                            },
-                            "allint.statusbar": {
-                                "type": "boolean",
-                                
-                                "default": true,
-                              
-                                "description": "Enable or disable the statusbar"
-                             },
-                            "allint.checkcommit": {
-                                "type": "boolean",
-                                
-                                "default": true,
-                              
-                                "description": "Whether or not commit checking is enabled"
-                             },
-                            "allint.checkhungariannotation": {
-                                "type": "boolean",
-                                
-                                "default": true,
-                                
-                                "description": "Whether or not hungarian notation checking is enabled"
-                             },
-                             "allint.hungariannotationoptions": {
-                                "type": "string",
-                                
-                                "default": "Record,Rec;Integer,Int;Code,Cod;Function,Func;Codeunit,Cdu;Page,Pag;Text,Txt",
-                                
-                                "description": "Hungarian Notation Settings Comma Separated String"
-                             }
-                        }
-                    },
+            "type": "object",
+            "title": "AlLint",
+            "properties": {
+                "allint.enabled": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Whether or not this extension is enabled"
+                },
+                "allint.statusbar": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Enable or disable the statusbar"
+                },
+                "allint.checkcommit": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Whether or not commit checking is enabled"
+                },
+                "allint.checkhungariannotation": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Whether or not hungarian notation checking is enabled"
+                },
+                "allint.hungariannotationoptions": {
+                    "type": "string",
+                    "default": "Record,Rec;Integer,Int;Code,Cod;Function,Func;Codeunit,Cdu;Page,Pag;Text,Txt",
+                    "description": "Hungarian Notation Settings Comma Separated String"
+                }
+            }
+        },
         "commands": [
             {
                 "command": "Refactor",
@@ -95,8 +79,6 @@
         "@types/mocha": "^2.2.32"
     },
     "dependencies": {
-        
-                "opn": "^4.0.2"
-        
+        "opn": "^4.0.2"
     }
 }
