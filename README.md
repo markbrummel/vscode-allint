@@ -1,14 +1,16 @@
-# Nav Skills AL Lint
+# NAV Skills AL Lint
 
 The NAV Skills extension is designed for AL and Dynamics NAV. It allows you to refactor code into a new function or codeunit and let's you test an object against guidelines for clean code.
 
 ## Features
 
+The extension will check your code as you are working on it. It checks the open file and shows warnings.
+
 Provides two commands
 
-* Refactor - Move one or more lines of code into a new function or new codeunit.
+* Refactor - Move one or more lines of code into a new function or new codeunit. (Not working yet)
 
-* Clean Code - Check your current object against coding guidelines for clean code.
+* Clean Code - Check your current object against coding guidelines for clean code. This will generate a summary report. (Not working yet)
 
 ## Requirements
 
@@ -50,6 +52,10 @@ Next up is the refactoring command and then uploading the summary to a report
 
 ## Release Notes
 
-### 0.2.0
+### 0.1.1
 
 Implemented setting and fixed reported issues.
+
+### 0.1.0
+
+First version
