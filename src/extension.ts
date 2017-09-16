@@ -1,6 +1,7 @@
 'use strict';
 import * as vscode from 'vscode';
 import { TextLine, TextEditor, commands, window, ExtensionContext, Range, Position, StatusBarItem, StatusBarAlignment, TextDocument, Disposable, DiagnosticSeverity, Diagnostic, languages } from "vscode";
+import { refactor } from './refactor';
 
 const open = require('opn');
 
@@ -9,11 +10,7 @@ const open = require('opn');
 export function activate(context: ExtensionContext) {
 
     console.log('The NAV-Skills Clean Code Extension is loaded...');
-    // Use the console to output diagnostic information (console.log) and errors (console.error).
-    // This line of code will only be executed once when your extension is activated.
-    //console.log('Congratulations, your extension "WordCount" is now active!');
     
-    // create a new word counter
     let maintainabilityIndex = new MaintainabilityIndex();
     let controller = new MaintainabilityIndexController(maintainabilityIndex);
 
@@ -22,9 +19,9 @@ export function activate(context: ExtensionContext) {
     context.subscriptions.push(maintainabilityIndex);
 
     let ccode = new CleanCode();
-
+    
     let refactordisp = commands.registerCommand('Refactor', () => {
-        ccode.Refactor(window.activeTextEditor);
+        refactor(window.activeTextEditor);
     })
     let ccodedisp = commands.registerCommand('CleanCode', () => {
         ccode.CleanCode(window.activeTextEditor);
@@ -125,17 +122,8 @@ class MaintainabilityIndexController {
 }
 
 class CleanCode {
-    public Refactor(editor: TextEditor) {
-        let line = editor.document.lineAt(editor.selection.active.line);
-
-        this.RefactorToFunction(line);
-    }
     public CleanCode(editor: TextEditor) {
         this.CleanCodeCheck(editor);
-    }
-
-    private RefactorToFunction(line: TextLine) {
-        console.log('Refactor' + line.text);
     }
 
     private CleanCodeCheck(editor: TextEditor) {

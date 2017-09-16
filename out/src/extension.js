@@ -2,15 +2,12 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const vscode = require("vscode");
 const vscode_1 = require("vscode");
+const refactor_1 = require("./refactor");
 const open = require('opn');
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 function activate(context) {
     console.log('The NAV-Skills Clean Code Extension is loaded...');
-    // Use the console to output diagnostic information (console.log) and errors (console.error).
-    // This line of code will only be executed once when your extension is activated.
-    //console.log('Congratulations, your extension "WordCount" is now active!');
-    // create a new word counter
     let maintainabilityIndex = new MaintainabilityIndex();
     let controller = new MaintainabilityIndexController(maintainabilityIndex);
     // Add to a list of disposables which are disposed when this extension is deactivated.
@@ -18,7 +15,7 @@ function activate(context) {
     context.subscriptions.push(maintainabilityIndex);
     let ccode = new CleanCode();
     let refactordisp = vscode_1.commands.registerCommand('Refactor', () => {
-        ccode.Refactor(vscode_1.window.activeTextEditor);
+        refactor_1.refactor(vscode_1.window.activeTextEditor);
     });
     let ccodedisp = vscode_1.commands.registerCommand('CleanCode', () => {
         ccode.CleanCode(vscode_1.window.activeTextEditor);
@@ -98,15 +95,8 @@ class MaintainabilityIndexController {
     }
 }
 class CleanCode {
-    Refactor(editor) {
-        let line = editor.document.lineAt(editor.selection.active.line);
-        this.RefactorToFunction(line);
-    }
     CleanCode(editor) {
         this.CleanCodeCheck(editor);
-    }
-    RefactorToFunction(line) {
-        console.log('Refactor' + line.text);
     }
     CleanCodeCheck(editor) {
         console.log('CleanCode' + editor.document.lineCount);
