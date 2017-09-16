@@ -8,7 +8,7 @@ The extension will check your code as you are working on it. It checks the open 
 
 Provides two commands
 
-* Refactor - Move one or more lines of code into a new function or new codeunit. (Not working yet)
+* Refactor - Move one or more lines of code into a new function or new codeunit. (In Prototype)
 
 * Clean Code - Check your current object against coding guidelines for clean code. This will generate a summary report. (Not working yet)
 
@@ -33,10 +33,11 @@ By default the extension will check the following abbreviations
     Function,Func
     Codeunit,Cdu
     Page,Pag
-    Text,Txt",
+    Text,Txt
+    Field,Fld
 
 Which can be changed by modifying the HungarianNotationOptions setting like this
-    "Record,Rec;Integer,Int;Code,Cod;Function,Func;Codeunit,Cdu;Page,Pag;Text,Txt",
+    "Record,Rec;Integer,Int;Code,Cod;Function,Func;Codeunit,Cdu;Page,Pag;Text,Txt;Field,Fld"
 
 ## Status Bar Explanation
 
@@ -51,6 +52,21 @@ https://en.wikipedia.org/wiki/Halstead_complexity_measures
 Next up is the refactoring command and then uploading the summary to a report
 
 ## Release Notes
+
+### 0.1.2
+
+First version of refactoring is implemented. The function is always called "foo" and does not yet check if the selection makes sense or depends on variables. 
+Fixed issue with system variables Rec and xRec not being recognised as Hungarian Notation.
+Added fields to the model with Hungarian Notation check.
+Check for using WITH statement in Tables and Pages.
+Warning if local and local variables have the same name.
+Text Constants throw warning if they have the old notation (TextXXX).
+Temporary Table Variables must have TEMP, BUFFER, ARGS or ARGUMENTS in the name.
+Check for reserved words, e.g. a function name called "Action" or a field called "SetRange".
+Complex Type variables that are declared with object id instead of name give warning.
+Cleaned up the Type Script a bit here and there.
+
+WARNING: You can not yet disable the new features.
 
 ### 0.1.1
 

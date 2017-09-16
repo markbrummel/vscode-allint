@@ -1,10 +1,9 @@
 'use strict';
 import * as vscode from 'vscode';
 import { TextLine, TextEditor, commands, window, ExtensionContext, Range, Position, StatusBarItem, StatusBarAlignment, TextDocument, Disposable, DiagnosticSeverity, Diagnostic, languages } from "vscode";
+import { alObject } from './alobject';
 
 export function refactor(editor: TextEditor) {
-//    window.showInformationMessage('Mark');
-   // editor.document.    
     
     // Step 1 is to grab the selected text, this should be tested since it has to be one function and extratable...
 
@@ -15,29 +14,26 @@ export function refactor(editor: TextEditor) {
         return;
     }
     let alCode = editor.document.getText(oldSelection);
-
-    console.log(alCode);
-    var defaultName : string = "";
+    let myObject = new alObject(editor);
     
-//    console.log(window.showInputBox({
+    console.log(alCode);
+    var newFunctioName : string = "foo";
+
+//    newFunctioName = window.showInputBox({
 //        prompt: `Function name for '${alCode[1]}':`,
-//        value: defaultName
-//    }));
+//        value: 'foo'
+//    });
 
     editor.edit(editBuilder => {
-        editBuilder.replace(oldSelection, 'MARK WAS HERE AND REMOVED YOUR CODE');
-
-        let extraLines = 0;
-
-        if (1==1) {
-            editBuilder.insert(new vscode.Position(0, 0), 'AND SOME CODE HERE');
-            extraLines = 1;
-        }
+        editBuilder.replace(new vscode.Position(myObject.lastLineNumber, 0), 
+            getProcedureTemplate(newFunctioName, alCode));
+        
+        editBuilder.replace(oldSelection, newFunctioName + '; // Refactored, remove comment when happy\n');
     });
 
-    //console.log(window.showInputBox(new vscode.InputBoxOptions()));
-    //editor.
-    //editor.insertSnippet(new vscode.SnippetString('tprodedure'));
-    console.log('Refactor');
-
 }    
+
+function getProcedureTemplate(functionName : string, oldCode : string) : string {
+    return('  PROCEDURE ' + functionName + '();\nbegin\n'+oldCode+'end;\n');
+}
+

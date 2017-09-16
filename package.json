@@ -49,7 +49,7 @@
                 },
                 "allint.hungariannotationoptions": {
                     "type": "string",
-                    "default": "Record,Rec;Integer,Int;Code,Cod;Function,Func;Codeunit,Cdu;Page,Pag;Text,Txt",
+                    "default": "Record,Rec;Integer,Int;Code,Cod;Function,Func;Codeunit,Cdu;Page,Pag;Text,Txt;Field,Fld",
                     "description": "Hungarian Notation Settings Comma Separated String"
                 }
             }
