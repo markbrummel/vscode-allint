@@ -20,9 +20,11 @@ export class alVariable {
     suggestedName: string;
     isGlobal: boolean;
     textConst : string;
-    constructor (value : string, lineNo : number, SetisGlobal : boolean) {
+    isUsed : boolean = false;
+    constructor (value : string, lineNo : number, setIsGlobal : boolean) {
         this.content = value.trim().replace(';', '').replace(')', '');
-        this.isGlobal = SetisGlobal;
+        this.isGlobal = setIsGlobal;
+        this.isUsed = setIsGlobal;
         this.lineNumber = lineNo;
         if (this.content.startsWith('VAR')) {
             this.content = this.content.substring(4); // remove var

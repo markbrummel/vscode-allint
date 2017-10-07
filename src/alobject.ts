@@ -3,12 +3,14 @@ import { TextLine, TextEditor, commands, window, ExtensionContext, Range, Positi
 import { alFunction } from './alfunction';
 import { alVariable } from "./alvariable";
 import { alField } from "./alfield";
+import { alLine } from './alLine';
 
 export class alObject {
     content: string;
     alField: alField[];
     alVariable: alVariable[];
     alFunction: alFunction[];
+    alLine: alLine[];
     numberOfFunctions: number = 0;
     objectType: alObjectType;
     objectID: number;
@@ -20,6 +22,7 @@ export class alObject {
         this.alFunction = [];
         this.alVariable = [];
         this.alField = [];
+        this.alLine = [];
         var p : number = 0;
         var n : number = 0;
         var f: number = 0;
@@ -28,11 +31,15 @@ export class alObject {
         var firstTime : boolean = false;
         var inVariableSection : boolean = false;
         var inFieldsSection : boolean = false;
+        var inFunction : boolean = false;
+        var beginEnd : number = 0;
 
         let lines = this.content.split(/\r?\n/g);
-        //this.alFunction = getFunctions(lines);
         
         lines.forEach((line, i) => {
+            this.alLine.push();
+            this.alLine[i] = new alLine(line, i);
+            
             if (i==0) {
                 let objectDetails = line.split(' ');
                 objectDetails.forEach((part, n) => {
@@ -44,7 +51,8 @@ export class alObject {
                     }
                 })
             }
-            if (validProcedureName(line.trim().toUpperCase())) {
+            if (validProcedureName(line)) {
+                inFunction = true;
                 inFieldsSection = false;
                 inVariableSection = false;
                 if (firstTime == true) {
@@ -60,6 +68,16 @@ export class alObject {
                 startsAt = i + 1;
 
             }
+            if (line.trim().toUpperCase() == 'BEGIN') {
+                beginEnd += 1;
+            }
+            if (line.trim().toUpperCase() == 'END;') {
+                beginEnd -= 1;
+                if (beginEnd == 0) {
+                    inFunction = false;
+                }
+            }
+            this.alLine[i].isCode = beginEnd >= 1;
             if (firstTime) {
                 functionContent = functionContent + line + '\n';                   
                 if (line == '}') {
@@ -75,7 +93,7 @@ export class alObject {
                     inVariableSection = false;
                 }
             }
-            if ((line.toUpperCase().trim() == ('VAR')) && (this.alFunction.length == 0)) {
+            if ((line.toUpperCase().trim() == ('VAR')) && (inFunction == false)) {
                 inVariableSection = true;
             }
             if (line.toUpperCase().trim() == ('KEYS')) {
@@ -103,6 +121,12 @@ export class alObject {
         // Add LocalVariables for easier diagnostics
         this.alFunction.forEach(alFunction => {
             alFunction.alVariable.forEach((alVariable, i) => {
+                this.alLine.forEach((alLine ,i) => {
+                    if ((i >= alFunction.startsAtLineNo) && (i <= alFunction.endsAtLineNo) && (alLine.isCode) && (alVariable.isUsed == false)) {
+                        alVariable.isUsed = alLine.upperCase.indexOf(alVariable.name) >= 0;
+//                        var test : number = alLine.upperCase.indexOf(alVariable.name);
+                    };
+                })
                 this.alVariable[n] = alVariable;
                 n++;
             })
@@ -168,13 +192,13 @@ const enum alObjectType {
 }
 
 function validProcedureName(value : string) :boolean {
-    if (value.startsWith('PROCEDURE')) {
+    if (value.trim().toUpperCase().startsWith('PROCEDURE')) {
         return(true);
     }
-    if (value.startsWith('LOCAL PROCEDURE')) {
+    if (value.trim().toUpperCase().startsWith('LOCAL PROCEDURE')) {
         return(true);
     }
-    if (value.startsWith('TRIGGER')) {
+    if (value.trim().toUpperCase().startsWith('TRIGGER')) {
         return(true);
     }
     return false;

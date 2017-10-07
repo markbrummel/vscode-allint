@@ -2,11 +2,13 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const vscode = require("vscode");
 class alVariable {
-    constructor(value, lineNo, SetisGlobal) {
+    constructor(value, lineNo, setIsGlobal) {
         this.isHungarianNotation = false;
         this.isTemporary = false;
+        this.isUsed = false;
         this.content = value.trim().replace(';', '').replace(')', '');
-        this.isGlobal = SetisGlobal;
+        this.isGlobal = setIsGlobal;
+        this.isUsed = setIsGlobal;
         this.lineNumber = lineNo;
         if (this.content.startsWith('VAR')) {
             this.content = this.content.substring(4); // remove var

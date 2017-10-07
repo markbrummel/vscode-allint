@@ -4,6 +4,7 @@ const vscode_1 = require("vscode");
 const alfunction_1 = require("./alfunction");
 const alvariable_1 = require("./alvariable");
 const alfield_1 = require("./alfield");
+const alLine_1 = require("./alLine");
 class alObject {
     constructor(theText) {
         this.numberOfFunctions = 0;
@@ -12,6 +13,7 @@ class alObject {
         this.alFunction = [];
         this.alVariable = [];
         this.alField = [];
+        this.alLine = [];
         var p = 0;
         var n = 0;
         var f = 0;
@@ -20,9 +22,12 @@ class alObject {
         var firstTime = false;
         var inVariableSection = false;
         var inFieldsSection = false;
+        var inFunction = false;
+        var beginEnd = 0;
         let lines = this.content.split(/\r?\n/g);
-        //this.alFunction = getFunctions(lines);
         lines.forEach((line, i) => {
+            this.alLine.push();
+            this.alLine[i] = new alLine_1.alLine(line, i);
             if (i == 0) {
                 let objectDetails = line.split(' ');
                 objectDetails.forEach((part, n) => {
@@ -34,7 +39,8 @@ class alObject {
                     }
                 });
             }
-            if (validProcedureName(line.trim().toUpperCase())) {
+            if (validProcedureName(line)) {
+                inFunction = true;
                 inFieldsSection = false;
                 inVariableSection = false;
                 if (firstTime == true) {
@@ -49,6 +55,16 @@ class alObject {
                 firstTime = true;
                 startsAt = i + 1;
             }
+            if (line.trim().toUpperCase() == 'BEGIN') {
+                beginEnd += 1;
+            }
+            if (line.trim().toUpperCase() == 'END;') {
+                beginEnd -= 1;
+                if (beginEnd == 0) {
+                    inFunction = false;
+                }
+            }
+            this.alLine[i].isCode = beginEnd >= 1;
             if (firstTime) {
                 functionContent = functionContent + line + '\n';
                 if (line == '}') {
@@ -64,7 +80,7 @@ class alObject {
                     inVariableSection = false;
                 }
             }
-            if ((line.toUpperCase().trim() == ('VAR')) && (this.alFunction.length == 0)) {
+            if ((line.toUpperCase().trim() == ('VAR')) && (inFunction == false)) {
                 inVariableSection = true;
             }
             if (line.toUpperCase().trim() == ('KEYS')) {
@@ -90,6 +106,13 @@ class alObject {
         // Add LocalVariables for easier diagnostics
         this.alFunction.forEach(alFunction => {
             alFunction.alVariable.forEach((alVariable, i) => {
+                this.alLine.forEach((alLine, i) => {
+                    if ((i >= alFunction.startsAtLineNo) && (i <= alFunction.endsAtLineNo) && (alLine.isCode) && (alVariable.isUsed == false)) {
+                        alVariable.isUsed = alLine.upperCase.indexOf(alVariable.name) >= 0;
+                        //                        var test : number = alLine.upperCase.indexOf(alVariable.name);
+                    }
+                    ;
+                });
                 this.alVariable[n] = alVariable;
                 n++;
             });
@@ -142,13 +165,13 @@ class alSummary {
     }
 }
 function validProcedureName(value) {
-    if (value.startsWith('PROCEDURE')) {
+    if (value.trim().toUpperCase().startsWith('PROCEDURE')) {
         return (true);
     }
-    if (value.startsWith('LOCAL PROCEDURE')) {
+    if (value.trim().toUpperCase().startsWith('LOCAL PROCEDURE')) {
         return (true);
     }
-    if (value.startsWith('TRIGGER')) {
+    if (value.trim().toUpperCase().startsWith('TRIGGER')) {
         return (true);
     }
     return false;

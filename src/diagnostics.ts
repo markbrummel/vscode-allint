@@ -10,12 +10,17 @@ import { alField } from "./alfield";
 export function getDiagnostics(editor : TextEditor, myObject : alObject) {
     let diagnostics: Diagnostic[] = [];
     let config = Object.assign({}, vscode.workspace.getConfiguration('allint'));
-    
+
+//    myObject.alLine.forEach((alLine, i) => {
+//
+//    })
     let lines = editor.document.getText().split(/\r?\n/g);    
     lines.forEach((line, i) => {
 
-        checkForCommit(line, config, diagnostics, i);
-        checkForWithInTableAndPage(line.toUpperCase(), config, diagnostics, myObject, i);
+        if (myObject.alLine[i].isCode) {
+            checkForCommit(line.toUpperCase(), config, diagnostics, i);
+            checkForWithInTableAndPage(line.toUpperCase(), config, diagnostics, myObject, i);    
+        }
         
         myObject.alFunction.forEach(alFunction => {
             if (alFunction.startsAtLineNo == i + 1) {
@@ -36,6 +41,7 @@ export function getDiagnostics(editor : TextEditor, myObject : alObject) {
                 checkVariableForTemporary(alVariable, line, diagnostics, i);
                 checkVariableForTextConst(alVariable, line, diagnostics, i);
                 checkVariableForReservedWords(alVariable, line, diagnostics, i);
+                checkVariableUnUsed(alVariable, line, diagnostics, i);
                 checkVariableAlreadyUsed(myObject ,alVariable, line, diagnostics, i);                
             }
         });        
@@ -135,6 +141,16 @@ function checkVariableForReservedWords(alVariable : alVariable, line : string, d
         let index = line.toUpperCase().indexOf(alVariable.name);
         let myDiagnose = new Diagnostic(new Range(new vscode.Position(i, index), new vscode.Position(i, index + alVariable.name.length)),
         'This is a reserved word (NAV-Skills Clean Code)',
+        DiagnosticSeverity.Information);
+        diagnostics.push(myDiagnose);
+    }    
+}
+
+function checkVariableUnUsed(alVariable : alVariable, line : string, diagnostics : any, i : number) {
+    if (alVariable.isUsed == false) {
+        let index = line.toUpperCase().indexOf(alVariable.name);
+        let myDiagnose = new Diagnostic(new Range(new vscode.Position(i, index), new vscode.Position(i, index + alVariable.name.length)),
+        'Unused Variable (NAV-Skills Clean Code)',
         DiagnosticSeverity.Information);
         diagnostics.push(myDiagnose);
     }    
