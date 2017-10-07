@@ -42,7 +42,8 @@ export function getDiagnostics(editor : TextEditor, myObject : alObject) {
                 checkVariableForTextConst(alVariable, line, diagnostics, i);
                 checkVariableForReservedWords(alVariable, line, diagnostics, i);
                 checkVariableUnUsed(alVariable, line, diagnostics, i);
-                checkVariableAlreadyUsed(myObject ,alVariable, line, diagnostics, i);                
+                checkVariableAlreadyUsed(myObject ,alVariable, line, diagnostics, i);  
+                checkVariableNameForUnderScore(alVariable, line, config, diagnostics, i);
             }
         });        
     })
@@ -52,8 +53,9 @@ export function getDiagnostics(editor : TextEditor, myObject : alObject) {
 }
 
 function checkForCommit(line : string, config : any, diagnostics : any, i : number) {
-    if ((line.toUpperCase().indexOf('COMMIT') >= 0) && (config.checkcommit)) {
-        let myDiagnose = new Diagnostic(new Range(new vscode.Position(i, line.indexOf('COMMIT')), new vscode.Position(i, line.indexOf('COMMIT') + 10)),
+    var position = line.toUpperCase().indexOf('COMMIT');
+    if ((position >= 0) && (config.checkcommit)) {
+        let myDiagnose = new Diagnostic(new Range(new vscode.Position(i, position), new vscode.Position(i, position + 10)),
             'A COMMIT is an indication of poorly structured code (NAV-Skills Clean Code)',
             DiagnosticSeverity.Information);
         diagnostics.push(myDiagnose);
@@ -167,12 +169,22 @@ function checkVariableAlreadyUsed(alObject : alObject, alVariable : alVariable, 
 }
 
 function checkFieldForHungarianNotation(alField : alField, line : string, diagnostics : any, i : number) {
-    if ((alField.isHungarianNotation)) {
+    if (alField.isHungarianNotation) {
         let index = line.indexOf(alField.name);
         let myDiagnose = new Diagnostic(new Range(new vscode.Position(i, index), new vscode.Position(i, index + alField.name.length)),
         'Hungarian Notation (NAV-Skills Clean Code)',
         DiagnosticSeverity.Information);
 
         diagnostics.push(myDiagnose);             
+    }
+}
+function checkVariableNameForUnderScore(alVariable : alVariable , line : string, config : any, diagnostics : any, i : number){
+    if(config.checkunderscoreinvariablenames &&  alVariable.nameContainsUnderscore){
+        let index = line.toUpperCase().indexOf(alVariable.name);
+
+        let myDiagnose = new Diagnostic(new Range(new vscode.Position(i, index), new vscode.Position(i, index + alVariable.name.length)),
+        'Variable names should not contain underscores in their name (NAV-Skills Clean Code)', DiagnosticSeverity.Information);
+
+        diagnostics.push(myDiagnose); 
     }
 }
