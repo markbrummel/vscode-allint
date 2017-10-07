@@ -36,7 +36,7 @@ export class alVariable {
         this.type = this.content.substring(this.content.indexOf(':') + 2)
         if (this.type.indexOf(' ') > 0) {
             this.objectId = this.type.substring(this.type.indexOf(' ') + 1);
-            if (this.objectId.indexOf('TEMPORARY') != -1) {
+            if (this.objectId.toUpperCase().indexOf('TEMPORARY') != -1) {
                 this.isTemporary = true;
                 this.objectId = this.objectId.substring(0, this.objectId.indexOf(' '));
             }
