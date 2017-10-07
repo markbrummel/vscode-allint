@@ -46,7 +46,7 @@ export function getDiagnostics(editor : TextEditor, myObject : alObject) {
 }
 
 function checkForCommit(line : string, config : any, diagnostics : any, i : number) {
-    if ((line.indexOf('COMMIT') >= 0) && (config.checkcommit)) {
+    if ((line.toUpperCase().indexOf('COMMIT') >= 0) && (config.checkcommit)) {
         let myDiagnose = new Diagnostic(new Range(new vscode.Position(i, line.indexOf('COMMIT')), new vscode.Position(i, line.indexOf('COMMIT') + 10)),
             'A COMMIT is an indication of poorly structured code (NAV-Skills Clean Code)',
             DiagnosticSeverity.Information);
