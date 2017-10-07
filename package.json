@@ -47,6 +47,11 @@
                     "default": true,
                     "description": "Whether or not hungarian notation checking is enabled"
                 },
+                "allint.checkunderscoreinvariablenames": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Whether or not variable name checking for underscores is enabled"
+                },
                 "allint.hungariannotationoptions": {
                     "type": "string",
                     "default": "Record,Rec;Integer,Int;Code,Cod;Function,Func;Codeunit,Cdu;Page,Pag;Text,Txt;Field,Fld",

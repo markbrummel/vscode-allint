@@ -126,4 +126,6 @@ function checkFieldForHungarianNotation(alField, line, diagnostics, i) {
         diagnostics.push(myDiagnose);
     }
 }
+function checkVariableNameForUnderScore(alField, line, diagnostics, i) {
+}
 //# sourceMappingURL=diagnostics.js.map

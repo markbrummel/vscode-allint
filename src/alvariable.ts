@@ -21,6 +21,7 @@ export class alVariable {
     isGlobal: boolean;
     textConst : string;
     isUsed : boolean = false;
+    nameContainsUnderscore : boolean = false;
     constructor (value : string, lineNo : number, setIsGlobal : boolean) {
         this.content = value.trim().replace(';', '').replace(')', '');
         this.isGlobal = setIsGlobal;
@@ -31,6 +32,7 @@ export class alVariable {
             this.byRef = true;
         } 
         this.name = this.content.substring(0, this.content.indexOf(':') - 1);
+        this.nameContainsUnderscore = this.checkNameForUnderscore();
         this.type = this.content.substring(this.content.indexOf(':') + 2)
         if (this.type.indexOf(' ') > 0) {
             this.objectId = this.type.substring(this.type.indexOf(' ') + 1);
@@ -91,6 +93,13 @@ export class alVariable {
                 found = true;
             }
         });
+        return found;
+    }
+    checkNameForUnderscore() : boolean {
+        var found : boolean = false;
+        if(this.name.indexOf('_') > 0)
+            found = true;
+
         return found;
     }
 }    
