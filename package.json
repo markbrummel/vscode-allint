@@ -47,10 +47,10 @@
                     "default": true,
                     "description": "Whether or not hungarian notation checking is enabled"
                 },
-                "allint.checkunderscoreinvariablenames": {
+                "allint.checkspecialcharactersinvariablenames": {
                     "type": "boolean",
                     "default": true,
-                    "description": "Whether or not variable name checking for underscores is enabled"
+                    "description": "Whether or not variable name checking for special characters is enabled"
                 },
                 "allint.hungariannotationoptions": {
                     "type": "string",
