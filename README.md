@@ -53,6 +53,13 @@ Next up is the refactoring command and then uploading the summary to a report
 
 ## Release Notes
 
+### 0.1.3
+
+Fixed a number of issues reported on GitHub.
+
+Check on underscore in variables
+
+
 ### 0.1.2
 
 First version of refactoring is implemented. The function is always called "foo" and does not yet check if the selection makes sense or depends on variables. 

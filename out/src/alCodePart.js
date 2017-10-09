@@ -8,4 +8,4 @@ class alCodePart {
     }
 }
 exports.alCodePart = alCodePart;
-//# sourceMappingURL=alCodePart.js.map
+//# sourceMappingURL=alcodepart.js.map
