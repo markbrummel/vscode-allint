@@ -2,7 +2,7 @@
     "name": "allint",
     "displayName": "NAV Skills AL Lint",
     "description": "Check your code for maintainability and upgradability",
-    "version": "0.1.2",
+    "version": "0.1.3",
     "publisher": "MarkBrummel",
     "icon": "ALLint_icon.png",
     "engines": {
