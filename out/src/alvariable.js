@@ -6,7 +6,7 @@ class alVariable {
         this.isHungarianNotation = false;
         this.isTemporary = false;
         this.isUsed = false;
-        this.nameContainsUnderscore = false;
+        this.nameContainsSpecialCharacters = false;
         this.content = value.trim().replace(';', '').replace(')', '');
         this.isGlobal = setIsGlobal;
         this.isUsed = setIsGlobal;
@@ -16,7 +16,7 @@ class alVariable {
             this.byRef = true;
         }
         this.name = this.content.substring(0, this.content.indexOf(':') - 1);
-        this.nameContainsUnderscore = this.checkNameForUnderscore();
+        this.nameContainsSpecialCharacters = this.checkNameForSpecialCharacters();
         this.type = this.content.substring(this.content.indexOf(':') + 2);
         if (this.type.indexOf(' ') > 0) {
             this.objectId = this.type.substring(this.type.indexOf(' ') + 1);
@@ -75,11 +75,12 @@ class alVariable {
         });
         return found;
     }
-    checkNameForUnderscore() {
-        var found = false;
-        if (this.name.indexOf('_') > 0)
-            found = true;
-        return found;
+    checkNameForSpecialCharacters() {
+        var regex = new RegExp(/[_~`!#$%\^&*+=\-\[\]\\';,/{}|\\":<>\?\s]/);
+        if (regex.test(this.name)) {
+            return true;
+        }
+        return false;
     }
 }
 exports.alVariable = alVariable;

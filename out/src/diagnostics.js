@@ -129,9 +129,9 @@ function checkFieldForHungarianNotation(alField, line, diagnostics, i) {
     }
 }
 function checkVariableNameForUnderScore(alVariable, line, config, diagnostics, i) {
-    if (config.checkunderscoreinvariablenames && alVariable.nameContainsUnderscore) {
+    if (config.checkspecialcharactersinvariablenames && alVariable.nameContainsSpecialCharacters) {
         let index = line.toUpperCase().indexOf(alVariable.name);
-        let myDiagnose = new vscode_1.Diagnostic(new vscode_1.Range(new vscode.Position(i, index), new vscode.Position(i, index + alVariable.name.length)), 'Variable names should not contain underscores in their name (NAV-Skills Clean Code)', vscode_1.DiagnosticSeverity.Information);
+        let myDiagnose = new vscode_1.Diagnostic(new vscode_1.Range(new vscode.Position(i, index), new vscode.Position(i, index + alVariable.name.length)), 'Variable names should not contain special characters or whitespaces in their name (NAV-Skills Clean Code)', vscode_1.DiagnosticSeverity.Information);
         diagnostics.push(myDiagnose);
     }
 }
