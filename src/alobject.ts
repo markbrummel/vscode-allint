@@ -18,7 +18,7 @@ export class alObject {
     name: string;
     lastLineNumber : number;
     constructor(theText: TextEditor) {
-        this.content = theText.document.getText(new Range(0,0,1000,1000));
+        this.content = theText.document.getText();
         this.alFunction = [];
         this.alVariable = [];
         this.alField = [];

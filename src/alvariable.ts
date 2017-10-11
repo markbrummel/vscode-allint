@@ -59,10 +59,10 @@ export class alVariable {
             hungarianOptions.alHungarianOption.forEach(hungarianOption => {
                 if ((hungarianOption.alType == this.type) && (this.isHungarianNotation == false)) {
                     if (isHungarianException(this.name) == false) {
-                        this.isHungarianNotation = (this.name.indexOf(hungarianOption.abbreviation) != -1);                        
+                        this.isHungarianNotation = (this.name.startsWith(hungarianOption.abbreviation));                        
                     }
                 }
-            });    
+            });
         }
     }
     hasWrongTempName() : boolean {
