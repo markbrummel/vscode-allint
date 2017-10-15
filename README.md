@@ -2,6 +2,12 @@
 
 The NAV Skills extension is designed for AL and Dynamics NAV. It allows you to refactor code into a new function or codeunit and let's you test an object against guidelines for clean code.
 
+[![Marketplace](https://vsmarketplacebadge.apphb.com/version-short/MarkBrummel.allint.svg)](https://marketplace.visualstudio.com/items?itemName=MarkBrummel.allint)
+[![Installs](https://vsmarketplacebadge.apphb.com/installs/MarkBrummel.allint.svg)](https://marketplace.visualstudio.com/items?itemName=MarkBrummel.allint)
+[![GitHub issues](https://img.shields.io/github/issues/markbrummel/vscode-allint.svg)](https://github.com/markbrummel/vscode-allint/issues)
+[![GitHub pull requests](https://img.shields.io/github/issues-pr/markbrummel/vscode-allint.svg)](https://github.com/markbrummel/vscode-allint/pulls)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/markbrummel/vscode-allint/master/LICENSE)
+
 ## Features
 
 The extension will check your code as you are working on it. It checks the open file and shows warnings.
