@@ -53,6 +53,13 @@ If the text is green, you are good. Orange and Red should explain itsself.
 
 https://en.wikipedia.org/wiki/Halstead_complexity_measures
 
+## Prepare Development setup
+- run **npm install** inside `vscode-allint` folder
+
+## Developing the extension
+- open VS Code on `vscode-allint`
+- run **F5** to build and debug the extension
+
 ## Known Issues
 
 Next up is the refactoring command and then uploading the summary to a report
