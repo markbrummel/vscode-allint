@@ -6,8 +6,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 ### Changed
-- Solution redone with [Language Server](https://code.visualstudio.com/docs/extensions/example-language-server)
-  Still missing are Config, Refactor and Cleancode as well as Cleanup of the solution
+- Solution redone as [Language Server](https://code.visualstudio.com/docs/extensions/example-language-server)
 
 ## 0.1.3
 
