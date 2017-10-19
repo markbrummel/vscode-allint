@@ -5,6 +5,9 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Changed
+- Solution redone with [Language Server](https://code.visualstudio.com/docs/extensions/example-language-server)
+  Still missing are Config, Refactor and Cleancode as well as Cleanup of the solution
 
 ## 0.1.3
 

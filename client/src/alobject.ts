@@ -1,5 +1,4 @@
-import * as vscode from 'vscode';
-import { TextLine, TextEditor, commands, window, ExtensionContext, Range, Position, StatusBarItem, StatusBarAlignment, TextDocument, Disposable, DiagnosticSeverity, Diagnostic, languages } from "vscode";
+import { TextLine, TextEditor } from "vscode";
 import { alFunction } from './alfunction';
 import { alVariable } from "./alvariable";
 import { alField } from "./alfield";
@@ -14,33 +13,33 @@ export class alObject {
     numberOfFunctions: number = 0;
     objectType: alObjectType;
     objectID: number;
-    maintainabilityIndex : number = 171;
+    maintainabilityIndex: number = 171;
     name: string;
-    lastLineNumber : number;
+    lastLineNumber: number;
     constructor(theText: TextEditor) {
         this.content = theText.document.getText();
         this.alFunction = [];
         this.alVariable = [];
         this.alField = [];
         this.alLine = [];
-        var p : number = 0;
-        var n : number = 0;
+        var p: number = 0;
+        var n: number = 0;
         var f: number = 0;
-        var functionContent : string = "";
-        var startsAt : number = 0;
-        var firstTime : boolean = false;
-        var inVariableSection : boolean = false;
-        var inFieldsSection : boolean = false;
-        var inFunction : boolean = false;
-        var beginEnd : number = 0;
+        var functionContent: string = "";
+        var startsAt: number = 0;
+        var firstTime: boolean = false;
+        var inVariableSection: boolean = false;
+        var inFieldsSection: boolean = false;
+        var inFunction: boolean = false;
+        var beginEnd: number = 0;
 
         let lines = this.content.split(/\r?\n/g);
-        
+
         lines.forEach((line, i) => {
             this.alLine.push();
-            this.alLine[i] = new alLine(line, i);
-            
-            if (i==0) {
+            this.alLine[i] = new alLine(line);
+
+            if (i == 0) {
                 let objectDetails = line.split(' ');
                 objectDetails.forEach((part, n) => {
                     if (n == 2) {
@@ -79,7 +78,7 @@ export class alObject {
             }
             this.alLine[i].isCode = beginEnd >= 1;
             if (firstTime) {
-                functionContent = functionContent + line + '\n';                   
+                functionContent = functionContent + line + '\n';
                 if (line == '}') {
                     this.lastLineNumber = i;
                 }
@@ -87,7 +86,7 @@ export class alObject {
             if ((inVariableSection) && (i > 1)) {
                 if (line.indexOf(':') != -1) {
                     this.alVariable[n] = new alVariable(line.toUpperCase(), i + 1, true);
-                    n++;    
+                    n++;
                 }
                 else {
                     inVariableSection = false;
@@ -102,14 +101,14 @@ export class alObject {
             if ((inFieldsSection) && (i > 1)) {
                 if (line.toUpperCase().indexOf('FIELD') != -1) {
                     this.alField[f] = new alField(line, i + 1);
-                    f++;    
+                    f++;
                 }
-            }            
+            }
             if (line.toUpperCase().trim() == ('FIELDS')) {
                 inFieldsSection = true;
             }
-        })         
-        
+        })
+
         // Also Fetch the last function
         this.alFunction.push();
         p++;
@@ -117,21 +116,21 @@ export class alObject {
         if (this.alFunction[p].maintainabilityIndex < this.maintainabilityIndex) {
             this.maintainabilityIndex = this.alFunction[p].maintainabilityIndex;
         }
-        
+
         // Add LocalVariables for easier diagnostics
         this.alFunction.forEach(alFunction => {
-            alFunction.alVariable.forEach((alVariable, i) => {
-                this.alLine.forEach((alLine ,i) => {
+            alFunction.alVariable.forEach((alVariable) => {
+                this.alLine.forEach((alLine, i) => {
                     if ((i >= alFunction.startsAtLineNo) && (i <= alFunction.endsAtLineNo) && (alLine.isCode) && (alVariable.isUsed == false)) {
                         alVariable.isUsed = alLine.upperCase.indexOf(alVariable.name) >= 0;
-//                        var test : number = alLine.upperCase.indexOf(alVariable.name);
+                        //                        var test : number = alLine.upperCase.indexOf(alVariable.name);
                     };
                 })
                 this.alVariable[n] = alVariable;
                 n++;
             })
         });
-        
+
         this.objectType = getObjectType(this.content);
         this.numberOfFunctions = this.alFunction.length;
     }
@@ -141,42 +140,42 @@ export class alObject {
     getNumberOfFunctions() {
         return this.content.split("PROCEDURE ").length - 1;
     }
-    getCurrentFunction(line : TextLine) : string {
-        var currentFuctionName : string = "Not in function";
+    getCurrentFunction(line: TextLine): string {
+        var currentFuctionName: string = "Not in function";
         this.alFunction.forEach(element => {
             if ((element.startsAtLineNo < line.lineNumber) && (element.endsAtLineNo > line.lineNumber)) {
                 currentFuctionName = element.name;
             }
         })
-        return(currentFuctionName)
+        return (currentFuctionName)
     }
-    getMaintainabilityIndex(line : TextLine) : number {
-        var currentMaintainabilityIndex : number = 0;
+    getMaintainabilityIndex(line: TextLine): number {
+        var currentMaintainabilityIndex: number = 0;
         this.alFunction.forEach(element => {
             if ((element.startsAtLineNo < line.lineNumber) && (element.endsAtLineNo > line.lineNumber)) {
                 currentMaintainabilityIndex = element.maintainabilityIndex;
             }
         })
-        return(currentMaintainabilityIndex)
+        return (currentMaintainabilityIndex)
     }
-    getCyclomaticComplexity(line : TextLine) : number {
-        var currentCyclomaticComplexity : number = 0;
+    getCyclomaticComplexity(line: TextLine): number {
+        var currentCyclomaticComplexity: number = 0;
         this.alFunction.forEach(element => {
             if ((element.startsAtLineNo < line.lineNumber) && (element.endsAtLineNo > line.lineNumber)) {
                 currentCyclomaticComplexity = element.cycolomaticComplexity;
             }
         })
-        return(currentCyclomaticComplexity)
+        return (currentCyclomaticComplexity)
     }
-    getSummary() : alSummary {
+    getSummary(): alSummary {
         let mySummary = new alSummary(this);
-        return(mySummary);
+        return (mySummary);
     }
 }
 
 class alSummary {
     content: string;
-    constructor (alObject :alObject) {
+    constructor(alObject: alObject) {
         this.content = alObject.name;
     }
 }
@@ -191,41 +190,35 @@ const enum alObjectType {
     menusuite = 7
 }
 
-function validProcedureName(value : string) :boolean {
+function validProcedureName(value: string): boolean {
     if (value.trim().toUpperCase().startsWith('PROCEDURE')) {
-        return(true);
+        return (true);
     }
     if (value.trim().toUpperCase().startsWith('LOCAL PROCEDURE')) {
-        return(true);
+        return (true);
     }
     if (value.trim().toUpperCase().startsWith('TRIGGER')) {
-        return(true);
+        return (true);
     }
     return false;
 }
 
-function getObjectType(str) {
-    switch (getCharsBefore(str.toUpperCase(), " "))
-    {
+function getObjectType(str : string) {
+    switch (getCharsBefore(str.toUpperCase(), " ")) {
         case "TABLE":
-            return(1);
+            return (1);
         case "CODEUNIT":
-            return(4);
+            return (4);
 
     }
-    return(0);
+    return (0);
 }
 
-function getCharsBefore(str, chr) {
+function getCharsBefore(str : string, chr : string) {
     var index = str.indexOf(chr);
     if (index != -1) {
-        return(str.substring(0, index));
+        return (str.substring(0, index));
     }
-    return("");
+    return ("");
 }
 
-function getFunctions(string : string[]) : alFunction[] {
-    var alFunction : alFunction [];
-    
-    return alFunction;
-}

@@ -56,9 +56,12 @@ https://en.wikipedia.org/wiki/Halstead_complexity_measures
 ## Prepare Development setup
 - run **npm install** inside `vscode-allint` folder
 
-## Developing the extension
-- open VS Code on `vscode-allint`
-- run **F5** to build and debug the extension
+## Debugging both Client and Server
+Debugging the client code is as easy as debugging a normal extension. Set a breakpoint in the client code and debug the extension by pressing **F5**. For a detailed description about launching and debugging an extension see [Running and Debugging Your Extension](https://code.visualstudio.com/docs/extensions/debugging-extensions).
+
+Since the server is started by the **LanguageClient** running in the extension (client), we need to attach a debugger to the running server. To do so, switch to the Debug viewlet and select the launch configuration **Attach to Server** and press **F5**. This will attach the debugger to the server.
+
+More Details: https://code.visualstudio.com/docs/extensions/example-language-server#_debugging-both-client-and-server
 
 ## Known Issues
 
