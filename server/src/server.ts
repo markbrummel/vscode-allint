@@ -5,6 +5,7 @@ import {
 } from 'vscode-languageserver';
 import { alObject } from './alobject';
 import { checkForCommit, checkForWithInTableAndPage, checkFunctionReservedWord, checkFunctionForHungarianNotation, checkFieldForHungarianNotation, checkVariableForHungarianNotation, checkVariableForIntegerDeclaration, checkVariableForTemporary, checkVariableForTextConst, checkVariableForReservedWords, checkVariableAlreadyUsed, checkVariableNameForUnderScore, checkForMissingDrillDownPageId, checkForMissingLookupPageId } from './diagnostics';
+import { onCodeActionHandler } from './codeActions';
 
 // Create a connection for the server. The connection uses Node's IPC as a transport
 let connection: IConnection = createConnection(new IPCMessageReader(process), new IPCMessageWriter(process));
@@ -24,16 +25,17 @@ connection.onInitialize((params): InitializeResult => {
 	return {
 		capabilities: {
 			// Tell the client that the server works in FULL text document sync mode
-			textDocumentSync: documents.syncKind
+			textDocumentSync: documents.syncKind,
 			// Tell the client that the server support code complete
 			// completionProvider: {
 			// 	resolveProvider: true
 			// }
-			//codeActionProvider: true
+			codeActionProvider: true
 		}
 	}
 });
 
+connection.onCodeAction(onCodeActionHandler(documents));
 
 // The content of a text document has changed. This event is emitted
 // when the text document first opened or when its content has changed.
@@ -46,18 +48,6 @@ interface Settings {
 	allint: AlLintSettings;
 }
 
-// These are the settings we defined in the client's package.json file
-interface AlLintSettings {
-	enabled: boolean;
-	statusbar: boolean;
-	checkcommit: boolean;
-	checkhungariannotation: boolean;
-	checkspecialcharactersinvariablenames: boolean;
-	hungariannotationoptions: string;
-	checkdrilldownpageid: boolean;
-	checklookuppageid: boolean;
-}
-
 let enabled: boolean;
 let statusbar: boolean;
 let checkcommit: boolean;
@@ -66,7 +56,6 @@ let checkspecialcharactersinvariablenames: boolean;
 let hungariannotationoptions: string;
 let checkdrilldownpageid: boolean;
 let checklookuppageid: boolean;
-
 // The settings have changed. Is send on server activation
 // as well.
 connection.onDidChangeConfiguration((change) => {
