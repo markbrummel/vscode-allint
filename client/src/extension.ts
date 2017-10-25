@@ -6,6 +6,7 @@ import { LanguageClient, LanguageClientOptions, ServerOptions, TransportKind } f
 import { MaintainabilityIndex } from './maintainabilityindex';
 import { MaintainabilityIndexController } from './maintainabilityindexcontroller';
 import { refactor } from './refactor';
+import { handlerApplyTextEdits } from './commands';
 
 export function activate(context: ExtensionContext) {
 
@@ -34,9 +35,10 @@ export function activate(context: ExtensionContext) {
 			fileEvents: workspace.createFileSystemWatcher('**/.clientrc')
 		}
 	}
-	
+	let server = new LanguageClient('allint', 'AL Language Server', serverOptions, clientOptions);
 	// Create the language client and start the client.
-	let disposable = new LanguageClient('allint', 'AL Language Server', serverOptions, clientOptions).start();
+	let disposable = server.start();
+	context.subscriptions.push(commands.registerCommand('alLint.editText', handlerApplyTextEdits(server)));
 	
 	// Push the disposable to the context's subscriptions so that the 
 	// client can be deactivated on extension deactivation

@@ -62,7 +62,7 @@ export function checkForMissingLookupPageId(diagnostics: any, myObject: alObject
                 end: { line: 0, character: 5 }
             },
             message: `LookupPageID should be set in a table (NAV-Skills Clean Code)`,
-            source: 'AlLint'
+            source: 'AlLint'            
         });
     }
 }
@@ -247,7 +247,8 @@ export function checkVariableNameForUnderScore(alVariable: alVariable, line: str
                     end: { line: i, character: index + alVariable.name.length }
                 },
                 message: `Variable names should not contain special characters or whitespaces in their name (NAV-Skills Clean Code)`,
-                source: 'AlLint'
+                source: 'AlLint',
+                code : 'Rename'
             });
         }
     }
