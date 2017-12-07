@@ -6,7 +6,7 @@ import {
 import { alObject } from './alobject';
 import { checkForCommit, checkForWithInTableAndPage, checkFunctionReservedWord, checkFunctionForHungarianNotation, checkFieldForHungarianNotation, checkVariableForHungarianNotation, checkVariableForIntegerDeclaration, checkVariableForTemporary, checkVariableForTextConst, checkVariableForReservedWords, checkVariableAlreadyUsed, checkVariableNameForUnderScore, checkForMissingDrillDownPageId, checkForMissingLookupPageId } from './diagnostics';
 import { onCodeActionHandler } from './codeActions';
-
+export declare var hungariannotationoptions : string ;
 // Create a connection for the server. The connection uses Node's IPC as a transport
 let connection: IConnection = createConnection(new IPCMessageReader(process), new IPCMessageWriter(process));
 
@@ -53,7 +53,6 @@ let statusbar: boolean;
 let checkcommit: boolean;
 let checkhungariannotation: boolean;
 let checkspecialcharactersinvariablenames: boolean;
-let hungariannotationoptions: string;
 let checkdrilldownpageid: boolean;
 let checklookuppageid: boolean;
 // The settings have changed. Is send on server activation

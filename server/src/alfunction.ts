@@ -1,7 +1,7 @@
 import { alVariable } from './alvariable';
 import { getHalstead } from './halstead';
 import { alHungarianOptions } from "./hungariannotation";
-
+import { hungariannotationoptions } from "./server";
 export class alFunction {
     content: string;
     contentUpperCase: string;
@@ -100,7 +100,7 @@ export class alFunction {
 
         this.halsteadVolume = this.length * Math.log2(this.vocabulary);
         this.maintainabilityIndex = Math.round(Math.max(0, (171 - 5.2 * Math.log(this.halsteadVolume) - 0.23 * (this.cycolomaticComplexity) - 16.2 * Math.log(this.numberOfLines)) * 100 / 171));
-        let hungarianOptions = new alHungarianOptions('Rec');
+        let hungarianOptions = new alHungarianOptions(hungariannotationoptions);
 
         hungarianOptions.alHungarianOption.forEach(hungarianOption => {
             if ((hungarianOption.alType == 'FUNCTION') && (this.isHungarianNotation == false)) {

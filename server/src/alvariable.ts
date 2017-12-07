@@ -1,6 +1,6 @@
 'use strict';
 import { alObject } from "./alobject";
-
+import { hungariannotationoptions } from "./server";
 export class alVariable {
     content: string;
     name: string;
@@ -49,8 +49,9 @@ export class alVariable {
             this.objectId = null;
         }
 
-        let hungarianOptions = new alHungarianOptions('Rec');
-
+        /*let hungarianOptions = new alHungarianOptions('Record,Rec;Record,rcd;Integer,Int;Code,Cod;Function,Func;Codeunit,Cdu;Page,Pag;Text,Txt;Field,Fld'); //EXTVAMYK, 2 replace with "allint.hungariannotationoptions" */
+        
+        let hungarianOptions = new alHungarianOptions(hungariannotationoptions);
         hungarianOptions.alHungarianOption.forEach(hungarianOption => {
             if ((hungarianOption.alType == this.type) && (this.isHungarianNotation == false)) {
                 if (isHungarianException(this.name) == false) {
