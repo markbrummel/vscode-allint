@@ -48,8 +48,6 @@ export class alVariable {
             this.textConst = this.objectId;
             this.objectId = null;
         }
-
-        /*let hungarianOptions = new alHungarianOptions('Record,Rec;Record,rcd;Integer,Int;Code,Cod;Function,Func;Codeunit,Cdu;Page,Pag;Text,Txt;Field,Fld'); //EXTVAMYK, 2 replace with "allint.hungariannotationoptions" */
         
         let hungarianOptions = new alHungarianOptions(hungariannotationoptions);
         hungarianOptions.alHungarianOption.forEach(hungarianOption => {
